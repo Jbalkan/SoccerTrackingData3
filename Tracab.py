@@ -28,16 +28,6 @@ def get_filename_dict_EPL():
     return fname_dict
 
 
-# def get_tracabdata_paths_original(fpath,fname,league='EPL'):
-#     if league=='EPL':
-#         fmetadata = fpath+'TracabMetadata'+fname
-#         fdata = fpath+'TracabData'+fname
-#     elif league=='DSL':
-#         fmetadata = fpath+fname+"/"+fname+"_metadata.xml"
-#         fdata = fpath+fname+"/"+fname+".dat"
-#     return fmetadata,fdata
-
-
 def get_tracabdata_paths(fpath, fname, league='EPL'):
     """ Get paths of tracabdata, modified by Jeff to work with first example """
     if league == 'EPL':
@@ -47,6 +37,11 @@ def get_tracabdata_paths(fpath, fname, league='EPL'):
     elif league == 'DSL':
         fmetadata = os.path.join(fpath, fname + "_metadata.xml")
         fdata = os.path.join(fpath, fname + '.dat')
+
+    # # previous
+    # elif league =='DSL':
+    #     fmetadata = fpath+fname+"/"+fname+"_metadata.xml"
+    #     fdata = fpath+fname+"/"+fname+".dat"
 
     return fmetadata, fdata
 
@@ -78,19 +73,28 @@ def read_tracab_match(fmetadata):
 
 
 def read_tracab_match_xml(fmetadata):
+    """ Read tracab match xml file (not used here)
+
+    Arguments:
+        fmetadata {str} -- file path of meta data
+
+    Returns:
+        tracab_match -- match object of corresponding paths
+    """
     # get meta data
     tree = ET.parse(fmetadata)
     root = tree.getroot()
-    
     match_attributes = root.getchildren()[0].attrib
-    
     period_attributes = {}
     temp = root.getchildren()[0].getchildren()
+
     # navigate through the file to extract the info that we need
     for t in temp:
-        if int( t.attrib['iEndFrame'] ) > int( t.attrib['iStartFrame'] ):
+        if int(t.attrib['iEndFrame']) > int( t.attrib['iStartFrame']):
             period_attributes[int(t.attrib['iId'])] = t.attrib
+
     match = tracab_match(match_attributes, period_attributes)
+
     return match
 
 
@@ -112,34 +116,35 @@ def read_tracab_match_data(league, fpath, fname,
     
     Returns:
         [type] -- frames
-        [type] -- match
-        [type] -- team1_players
-        [type] -- team0_players
+        tracab_match -- match
+        list -- team1_players
+        list -- team0_players
     """
     # get match metadata
     fmetadata, fdata = get_tracabdata_paths(fpath, fname, league)
     if verbose:
         print("Reading match metadata")
-
     match = read_tracab_match(fmetadata)
 
-    # now read in tracking data
+    # read in tracking data
     if verbose:
-        print ("Reading match tracking data")
-
+        print("Reading match tracking data")
     frames = []
     with open(fdata, "r") as fp:
-        for f in fp: # go through line by line and break down data in individual players and the ball
+        # go through line by line and break down data in individual players and the ball
+        for f in fp: 
             # each line is a single frame
-            chunks = f.split(':')[:-1] # last element is carriage return
-            if len(chunks)>3:
-                print (chunks)
-            assert len(chunks)<=3
+            chunks = f.split(':')[:-1] # last element is carriage return \n
+            if len(chunks) > 3:
+                print(chunks)
+
+            assert(len(chunks) <= 3)
             frameid = int(chunks[0])
             frame = tracab_frame(frameid)
+
             # now get players
             targets = chunks[1].split(';')
-            assert targets[-1]==''
+            assert(targets[-1] == '')
             for target in targets[:-1]:
                 target = target.split(',')
                 team = int( target[0] )
