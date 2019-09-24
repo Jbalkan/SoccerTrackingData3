@@ -2,9 +2,11 @@
 """
 Created on Tue Jan 29 16:06:54 2019 
 
-Module for reading Tracab data and constructing frame and player objects, and calculating possessions
+Module for reading Tracab data and constructing frame and player objects, 
+and calculating possessions
 
-@author: laurieshaw
+@author: laurieshaw, modified by Jeff Balkanski
+
 """
 
 import os
@@ -13,6 +15,7 @@ import datetime as dt
 import numpy as np
 import Tracking_Velocities as vel
 import xml.etree.ElementTree as ET
+
 
 def get_filename_dict_EPL():
     raw_file_names = "/Users/laurieshaw/Documents/Football/Data/TrackingData/Tracab/RawData/raw_file_names.txt"
@@ -24,37 +27,55 @@ def get_filename_dict_EPL():
             fname_dict[l[0]] = l[1].replace('\n','')
     return fname_dict
 
-def get_tracabdata_paths(fpath,fname,league='EPL'):
-    if league=='EPL':
-        fmetadata = fpath+'TracabMetadata'+fname
-        fdata = fpath+'TracabData'+fname
-    elif league=='DSL':
-        fmetadata = fpath+fname+"/"+fname+"_metadata.xml"
-        fdata = fpath+fname+"/"+fname+".dat"
-    return fmetadata,fdata
 
-def get_tracabdata_paths_j(fpath,fname,league='EPL'):
-    if league=='EPL':
+# def get_tracabdata_paths_original(fpath,fname,league='EPL'):
+#     if league=='EPL':
+#         fmetadata = fpath+'TracabMetadata'+fname
+#         fdata = fpath+'TracabData'+fname
+#     elif league=='DSL':
+#         fmetadata = fpath+fname+"/"+fname+"_metadata.xml"
+#         fdata = fpath+fname+"/"+fname+".dat"
+#     return fmetadata,fdata
+
+
+def get_tracabdata_paths(fpath, fname, league='EPL'):
+    """ Get paths of tracabdata, modified by Jeff to work with first example """
+    if league == 'EPL':
         fmetadata = fpath+'TracabMetadata'+fname
         fdata = fpath+'TracabData'+fname
-    elif league=='DSL':
-        fmetadata = os.path.join(fpath, fname + "_metadata.xml") # fpath+fname+"/"+fname+"_metadata.xml"
-        fdata = os.path.join(fpath, fname + '.dat') # fpath+fname+"/"+fname+".dat"
-    return fmetadata,fdata
+
+    elif league == 'DSL':
+        fmetadata = os.path.join(fpath, fname + "_metadata.xml")
+        fdata = os.path.join(fpath, fname + '.dat')
+
+    return fmetadata, fdata
+
 
 def read_tracab_match(fmetadata):
+    """ Create tracab object out of XML metadat
+
+    Arguments:
+        fmetadata {str} -- file path of meta data
+
+    Returns:
+        tracab_match -- match object of corresponding paths
+    """
     # get meta data
     f = open(fmetadata, "r")
     metadata = f.read()
     soup = BeautifulSoup(metadata, 'xml') # deal with xml markup (BS might be overkill here)
     match_attributes = soup.match.attrs
     period_attributes = {}
+
     # navigate through the file to extract the info that we need
     for p in soup.find_all('period'):
         if p.attrs['iEndFrame']>p.attrs['iStartFrame']:
             period_attributes[int(p.attrs['iId'])] = p.attrs
+
     match = tracab_match(match_attributes, period_attributes)
+
     return match
+
 
 def read_tracab_match_xml(fmetadata):
     # get meta data
@@ -72,16 +93,40 @@ def read_tracab_match_xml(fmetadata):
     match = tracab_match(match_attributes, period_attributes)
     return match
 
-def read_tracab_match_data(league,fpath,fname,team1_exclude=None,team0_exclude=None,during_match_only=True, verbose=False):
+
+def read_tracab_match_data(league, fpath, fname,
+                           team1_exclude=None, team0_exclude=None,
+                           during_match_only=True, verbose=False):
+    """ Main function to read match data
+    
+    Arguments:
+        league {str} -- league name
+        fpath {str} -- [description]
+        fname {str} -- [description]
+    
+    Keyword Arguments:
+        team1_exclude {[type]} -- [description] (default: {None})
+        team0_exclude {[type]} -- [description] (default: {None})
+        during_match_only {bool} -- [description] (default: {True})
+        verbose {bool} -- show print statements (default: {False})
+    
+    Returns:
+        [type] -- frames
+        [type] -- match
+        [type] -- team1_players
+        [type] -- team0_players
+    """
     # get match metadata
-    fmetadata,fdata = get_tracabdata_paths_j(fpath,fname,league)
+    fmetadata, fdata = get_tracabdata_paths(fpath, fname, league)
     if verbose:
-        print ("Reading match metadata")
+        print("Reading match metadata")
 
     match = read_tracab_match(fmetadata)
+
     # now read in tracking data
     if verbose:
         print ("Reading match tracking data")
+
     frames = []
     with open(fdata, "r") as fp:
         for f in fp: # go through line by line and break down data in individual players and the ball
@@ -130,7 +175,9 @@ def read_tracab_match_data(league,fpath,fname,team1_exclude=None,team0_exclude=N
     vel.estimate_player_velocities(team1_players, team0_players, match, window=7, polyorder=1, maxspeed = 14)
     vel.estimate_ball_velocities(frames,match,window=5,polyorder=3,maxspeed=40)
     vel.estimate_com_frames(frames,match,team1_exclude,team0_exclude)
+
     return frames, match, team1_players, team0_players
+
 
 def set_parity(frames, match):
     # determines the direction in which the home team are shooting
@@ -145,6 +192,7 @@ def set_parity(frames, match):
         match.period_parity[2] = 1
     return match
 
+
 def check_frames(frames):
     frameids = [frame.frameid for frame in frames]
     missing = set(frameids).difference(set(range(min(frameids),max(frameids)+1)))
@@ -154,7 +202,8 @@ def check_frames(frames):
     if nduplicates>0:
         print ("Check Fail: Duplicate frames found")
 
-def get_goalkeeper_numbers(frames,verbose=True):
+
+def get_goalkeeper_numbers(frames, verbose=True):
     ids = frames[0].team1_jersey_nums_in_frame
     x = []
     for i in ids:
@@ -174,6 +223,7 @@ def get_goalkeeper_numbers(frames,verbose=True):
         print ("home goalkeeper(s): ", team1_exclude)
         print ("away goalkeeper(s): ", team0_exclude)
     return team1_exclude, team0_exclude
+
 
 def find_GK_substitution(frames,team,first_gk_id):
     gk_id = first_gk_id
@@ -198,6 +248,7 @@ def find_GK_substitution(frames,team,first_gk_id):
     if len(new_gk) != 1:
         print( "goalkeeper sub problem", new_gk)
     return new_gk
+
 
 def get_players(frames):
     # first get all players that appear in at least one frame
@@ -225,6 +276,7 @@ def get_players(frames):
             else: # player is not in this frame
                 team0_players[j].add_null_frame(frame.frameid,frame.timestamp)
     return team1_players, team0_players
+
 
 def timestamp_frames(frames,match):
     # Frames must be sorted into ascending frameid first
@@ -266,6 +318,7 @@ def timestamp_frames(frames,match):
             frame.timestamp = -1
     return frames, match
 
+
 def get_tracab_posessions(frames,match,min_pos_length=0):
     posessions = []
     for p in match.period_attributes.keys():
@@ -287,6 +340,7 @@ def get_tracab_posessions(frames,match,min_pos_length=0):
         pos.set_possession_type(frames,match)
     return posessions
 
+
 def make_posession_plot(posessions):
     home = [p.pos_duration for p in posessions if p.team=='H']
     away = [p.pos_duration for p in posessions if p.team=='A']
@@ -305,9 +359,20 @@ def make_posession_plot(posessions):
     ax.legend(framealpha=0.2,frameon=False,fontsize=10,numpoints=1)
     
 
-# match class
+#############################################################
+#                                                           #
+#               Classes                                     #
+#                                                           #
+#############################################################
+
 class tracab_match(object):
-    def __init__(self,match_attributes,period_attributes):
+    """ Tracab Match class
+    
+    Arguments:
+        object {[type]} -- match_attributes
+        object {[type]} -- period_attributes
+    """
+    def __init__(self, match_attributes, period_attributes):
         self.provider = 'Tracab'
         self.match_attributes = match_attributes
         self.date = dt.datetime.strptime(match_attributes['dtDate'], '%Y-%m-%d %H:%M:%S')
@@ -323,7 +388,13 @@ class tracab_match(object):
         
 # frame class
 class tracab_frame(object):
-    def __init__(self,frameid):
+    """ Tracab Frame object
+    
+    Arguments:
+        object {[type]} -- frameid
+
+    """
+    def __init__(self, frameid):
         self.provider = 'Tracab'
         self.frameid = frameid
         self.team1_players = {}
@@ -370,8 +441,18 @@ class tracab_frame(object):
         return s
         
 class tracab_target(object):
-    # defines position of an individual target 'player' in a frame
-    def __init__(self,team,sys_target_ID,jersey_num,pos_x,pos_y,speed):
+    """  defines position of an individual target 'player' in a frame
+    
+    Arguments:
+        object {[type]} -- team
+        object {[type]} -- sys_target_ID
+        object {[type]} -- jersey_num
+        object {[type]} -- pos_x
+        object {[type]} -- pos_y
+        object {[type]} -- speed
+
+    """
+    def __init__(self, team, sys_target_ID, jersey_num, pos_x, pos_y, speed):
         self.team = team
         self.sys_target_ID = sys_target_ID
         self.jersey_num = jersey_num
@@ -380,8 +461,14 @@ class tracab_target(object):
         self.speed = speed
         
 class tracab_player(object):
+    """ tracab playe  obj
+    
+    Arguments:
+        object {[type]} -- jersey_num
+        object {[type]} -- teamID
+    """
     # contains trajectory of a single player over the entire match
-    def __init__(self,jersey_num, teamID):
+    def __init__(self, jersey_num, teamID):
         self.jersey_num = jersey_num
         self.teamID = teamID
         self.frame_targets = []
@@ -398,10 +485,20 @@ class tracab_player(object):
         self.frame_timestamps.append( timestamp )
         self.frameids.append( frameid )
         self.frame_targets.append( tracab_target(self.teamID, None, self.jersey_num, 0.0, 0.0, 0.0 ) )
-        
+
+
 class tracab_possesion(object):
+    """ Tracab Possesion class
+    
+    Arguments:
+        object {[type]} -- fstart
+        object {[type]} -- fend
+        object {[type]} -- fstart_num
+        object {[type]} -- match
+
+    """
     # a single period of continuous posession for a team
-    def __init__(self,fstart,fend,fstart_num,match):
+    def __init__(self, fstart, fend, fstart_num, match):
         self.period = fstart.period
         self.pos_start_fid = fstart.frameid
         self.pos_end_fid = fend.frameid
@@ -453,36 +550,3 @@ class tracab_possesion(object):
         return s
         
         
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-    
-    
-    
-    
-    
