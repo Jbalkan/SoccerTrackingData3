@@ -21,7 +21,8 @@ import cPickle as pickle
 import scipy.stats as stats
 
 
-def calc_formation_by_period(period_length,min_period_length,posessions,frames_tb,match_tb,subsample,excludeH,excludeA,plotfig=False,deleteLattices=False):
+def calc_formation_by_period(period_length,min_period_length,posessions,frames_tb,match_tb,
+                                subsample,excludeH,excludeA,plotfig=False,deleteLattices=False):
     # aggregates individual posessions into windoes of at least min_period_length and at most period_length
     # then calculates attackoing (team in possession) and defensive (team out of possession) formations in each possession window
     # posessions is a list of possessions
@@ -96,7 +97,7 @@ def calc_formation_by_period(period_length,min_period_length,posessions,frames_t
     return attacking_formations,defensive_formations
     
 
-def calc_posession_lattice(posessions,frames_tb,match_tb,subsample):
+def calc_posession_lattice(posessions, frames_tb, match_tb, subsample):
     # parity=1, home team is attacking right->left
     frames = []
     fig,ax = vis.plot_pitch(match_tb)
@@ -278,6 +279,7 @@ def generate_formation_from_sub_cluster(ctypes,all_formations,clusternums,Amatri
     cluster_formation.ctypes = ctypes # save these for later analysis
     return cluster_formation
 
+
 def get_superliga_clusters(Amatrix,Smatrix,all_formations,formation_stats,match_tb):
     # generates clusters for latest presentation
     ctypes =  make_dendogram( Amatrix,formation_stats,t=80,method='ward')
@@ -349,7 +351,8 @@ def Hungarian_Cost(F1,F2,match_tb,metric='L2',squeeze=[1.],plot=False):
             ax.plot( [100*F1.nodes[pid1].x,squeeze_min*100*F2.nodes[pid2].x] , [100*F1.nodes[pid1].y,squeeze_min*100*F2.nodes[pid2].y], 'k' )
     return cost_min, pids1, pmatch, squeeze_min 
 
-def Cost_Metric(F1,F2,pid1,pid2,metric='L2',s=1.):
+
+def Cost_Metric(F1, F2, pid1, pid2, metric='L2', s=1.):
     if metric=='L1':
         return np.abs( ( F1.nodes[pid1].x-s*F2.nodes[pid2].x ) ) + np.abs( ( F1.nodes[pid1].y-s*F2.nodes[pid2].y ) )
     elif metric=='L2':
@@ -412,6 +415,7 @@ def Cost_Metric(F1,F2,pid1,pid2,metric='L2',s=1.):
         ll =  -1*np.log(2.*np.pi)-0.5*np.log(np.linalg.det(cov2)) - 0.5*np.dot(xdif, np.matmul(invcov2,xdif) )
         return -1*ll
 
+
 def Sym_KL_Divergence(mu1,mu2,cov1,cov2):
     # Experimental metric
     d = np.linalg.matrix_rank(cov1)
@@ -420,6 +424,7 @@ def Sym_KL_Divergence(mu1,mu2,cov1,cov2):
     mudif = mu1 - mu2
     KLs = -1*d + 0.5* ( np.trace( np.matmul(invcov2,cov1) ) +  np.trace( np.matmul(invcov1,cov2) ) + np.dot(mudif, np.matmul(invcov2,mudif) ) + np.dot(mudif, np.matmul(invcov1,mudif) ) )
     return KLs
+
 
 def Wasserstein_Metric(mu1,mu2,cov1,cov2,method='fast'):
     # Wasserstein Metric (see wikipedia entrance)
@@ -442,6 +447,7 @@ def KL_Divergence(mu1,mu2,cov1,cov2):
     KL = 0.5* ( np.log(np.linalg.det(cov2)/np.linalg.det(cov1)) -d + np.trace( np.matmul(invcov2,cov1) ) +  np.dot(mudif, np.matmul(invcov2,mudif) ) ) 
     return KL
     
+
 class formation(object):
     # defines a single observation of a formation from an aggregated possession window
     def __init__(self,team):
@@ -697,7 +703,6 @@ class lattice(object):
     def add_formation_offset_nodes(self,pid,dx,dy):
         self.formation_offset_nodes[pid] = node(pid,dx,dy)
          
-            
     def calc_edges(self):
         # calculate vectors between all the nodes
         for p in self.pids:
@@ -770,5 +775,4 @@ class node(object):
         #print self.local_density, self.nearest_neighours[:N]
      
     def __repr__(self):
-        print self.pid
-        
+        print(self.pid)

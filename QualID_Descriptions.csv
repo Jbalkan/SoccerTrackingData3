@@ -19,7 +19,7 @@ Qual_ID,Short,Long
 18,Out of box-centre,Zone of the pitch - See appendix 7
 19,35+ centre,Zone of the pitch - See appendix 7
 20,Right footed,Player shot with right footed
-21,Other body part,Shot was neither via a playerÕs head or foot for example knee or chest
+21,Other body part,Shot was neither via a playerâ€™s head or foot for example knee or chest
 22,Regular play,Shot during open play as opposed to from a set play
 23,Fast break,Shot occurred following a fast break situation
 24,Set piece,Shot occurred from a crossed free kick
@@ -92,7 +92,7 @@ Qual_ID,Short,Long
 101,Saved off line,Shot saved on the goal line
 102,Goal mouth y co-ordinate,Y Co-ordinate of where a shot crossed goal line - see Appendix 4
 103,Goal mouth z co-ordinate,Z Co-ordinate for height at which a shot crossed the goal line - see Appendix 4
-106,Attacking Pass,A pass in the oppositionÕs half of the pitch
+106,Attacking Pass,A pass in the oppositionâ€™s half of the pitch
 107,Throw-in,Throw-in taken
 112,Scramble,Goal where there was a scramble for possession of the ball and the defence had an opportunity to clear
 113,Strong,Shot was subjectively classed as strong
@@ -104,7 +104,7 @@ Qual_ID,Short,Long
 121,Swerve Right,Shot which swerves to the right - from attackers perspective
 122,Swerve Moving,Shot which swerves in several directions
 123,Keeper Throw,Pass event - goalkeeper throws the ball out
-124,Goal Kick,Pass event Ð goal kick
+124,Goal Kick,Pass event â€“ goal kick
 127,Direction of play,Event type 32 - Actual direction of play in relation to TV camera. X/Y coordinates however are ALWAYS all normalized to Left to Right.
 128,Punch,Clearance by goalkeeper where he punches the ball clear
 130,Team formation,See appendix 8
@@ -125,11 +125,11 @@ Qual_ID,Short,Long
 154,Intentional assist,"Shot from an intentional assist i.e. The assisting player intended the pass, no deflection etc"
 155,Chipped,Pass which was chipped into the air
 156,Lay-off,Pass where player laid the ball into the path of a teammates run
-157,Launch,Pass played from a playerÕs own half up towards front players. Aimed to hit a zone rather than a specific player
+157,Launch,Pass played from a playerâ€™s own half up towards front players. Aimed to hit a zone rather than a specific player
 158,Persistent infringement,Card shown to player for persistent fouls
 159,Foul and abusive language,Card shown for player using foul language
 160,Throw-in set piece,Shot came from a throw-in set piece
-161,Encroachment,Card shown for player who moves within 10 yards of an opponentÕs free kick
+161,Encroachment,Card shown for player who moves within 10 yards of an opponentâ€™s free kick
 162,Leaving field,Card shown for player leaving the field without permission
 163,Entering field,Card shown for player entering the field during play without referee's permission
 164,Spitting,Card shown for spitting
@@ -157,12 +157,12 @@ Qual_ID,Short,Long
 186,Scored,Goalkeeper event - shots faced and not saved resulting in goal
 187,Saved,Goalkeeper event - shots faced and saved
 188,Missed,Goalkeeper event - shot faced which went wide or over. Did not require a save.
-189,Player not visible,Broadcast footage showing replay and not live footage Ð this event is what Opta analysts believe occurred.
+189,Player not visible,Broadcast footage showing replay and not live footage â€“ this event is what Opta analysts believe occurred.
 190,From shot off target,Used with Event 10. Indicates a shot was saved by the goalkeeper but in fact the shot was going wide and not on target
 191,Off the ball foul,Foul committed by and on a player who is not in possession of the ball
 192,Block by hand,Outfield player blocks a shot with their hand
 194,Captain,ID of the player who is the team captain
-195,Pull Back,Player in oppositionÕs penalty box reaches the by-line and passes (cuts) the ball backwards to a teammate
+195,Pull Back,Player in oppositionâ€™s penalty box reaches the by-line and passes (cuts) the ball backwards to a teammate
 196,Switch of play,Any pass which crosses the centre zone of the pitch and in length is greater than 60 on the y axis of the pitch
 197,Team kit,Kit of the team
 198,GK hoof,Goalkeeper drops the ball on the ground and kicks it long towards a position rather than a specific player
@@ -179,10 +179,10 @@ Qual_ID,Short,Long
 208,Referee injury,Referee sustained injury causing stoppage in play
 209,Game end,The game is finished
 210,Assist,The pass was an assist for a shot. The type of shot then dictates whether it was a goal assist or just key pass.
-211,Overrun,TAKE ON (3) Ð where a player takes on an opponent but the ball runs away from them out of play or to an opponent.
+211,Overrun,TAKE ON (3) â€“ where a player takes on an opponent but the ball runs away from them out of play or to an opponent.
 212,Length,The estimated length the ball has travelled during the associated event.
 213,Angle,The angle the ball travels at during an event relative to the direction of play. Shown in radians.
-214,Big Chance,Shot was deemed by Opta analysts an excellent opportunity to score Ð clear cut chance eg one on one
+214,Big Chance,Shot was deemed by Opta analysts an excellent opportunity to score â€“ clear cut chance eg one on one
 215,Individual Play,"Player created the chance to shoot by himself, not assisted. For example he dribbled to create space for himself and shot."
 216,2nd related event ID,"If there was a 2nd assist, i.e a pass to create the opportunity for the player making the assist. MLS and German Bundesliga 1 & 2."
 217,2nd assisted,Indicates that this shot had a significant pass to create the opportunity for the pass which led to a goal

@@ -13,13 +13,29 @@ import numpy as np
 import matplotlib.animation as animation
 import graham_scan as gs
 
-def plot_pitch(match,fig=None,ax=None,lw=2,ps=20,no_center_spot=False):
-    # Plots a pitch. Pitch dimensions are often defined in yards, so need to convert distance units
+
+def plot_pitch(match, fig=None, ax=None, lw=2, ps=20, no_center_spot=False):
+    """ plot pitch by itself. Pitch dimensions are often defined in yards, so need to convert distance units
+    
+    Arguments:
+        match {tracab} -- [description]
+    
+    Keyword Arguments:
+        fig {[type]} -- [description] (default: {None})
+        ax {[type]} -- [description] (default: {None})
+        lw {int} -- [description] (default: {2})
+        ps {int} -- [description] (default: {20})
+        no_center_spot {bool} -- [description] (default: {False})
+    
+    Returns:
+        fig, axis -- matplotlib objects
+    """
     # set up plot
     if fig is None:
         fig,ax = plt.subplots(figsize=(12,8))
     lw=lw
     lc = 'k'
+
     # ALL DIMENSIONS IN cm
     xborder = 300
     yborder = 300
@@ -27,6 +43,7 @@ def plot_pitch(match,fig=None,ax=None,lw=2,ps=20,no_center_spot=False):
     half_pitch_width = match.fPitchYSizeMeters*100/2. # in cm
     half_pitch_length = match.fPitchXSizeMeters*100/2.
     signs = [-1,1]
+
     # yards to cm
     goal_line_width = 8*cm_per_yard
     box_width = 20*cm_per_yard
@@ -39,6 +56,7 @@ def plot_pitch(match,fig=None,ax=None,lw=2,ps=20,no_center_spot=False):
     D_radius = 10*cm_per_yard
     D_pos = 12*cm_per_yard
     centre_circle_radius = 10*cm_per_yard
+
     # half way line # center circle
     ax.plot([0,0],[-half_pitch_width,half_pitch_width],lc,linewidth=lw)
     if not no_center_spot:
@@ -82,7 +100,9 @@ def plot_pitch(match,fig=None,ax=None,lw=2,ps=20,no_center_spot=False):
     ymax = match.fPitchYSizeMeters*100/2. + yborder
     ax.set_xlim([-xmax,xmax])
     ax.set_ylim([-ymax,ymax])
+
     return fig,ax
+
 
 def get_frames_between_timestamps(frames,match,tstart,tend):
     # returns frames between two timestamps
@@ -96,6 +116,7 @@ def get_frames_between_timestamps(frames,match,tstart,tend):
     fend = np.argmax( timestamps>=tend[1] )  + ihalf
     return frames[fstart:fend]
 
+
 def find_framenum_at_timestamp(frames,match,half,timestamp):
     # returns first frame after a given point in time
     # timestamp is a tuple (half [1,2], frame timestamp)
@@ -107,12 +128,29 @@ def find_framenum_at_timestamp(frames,match,half,timestamp):
     framenum = np.argmax( timestamps>=timestamp ) + ihalf
     return framenum
 
-def plot_frame(frame,match,alpha=1.0,include_player_velocities=True,include_ball_velocities=True, figax=None):
+
+def plot_frame(frame,match, alpha=1.0, include_player_velocities=True, include_ball_velocities=True, figax=None):
+    """ Plot one frame with matplotlib, show payers, ball, velocities, etc...
+    
+    Arguments:
+        frame {Tracab frame} -- frame to frame
+        match {Tracab match} -- match obj of frame
+    
+    Keyword Arguments:
+        alpha {float} -- [description] (default: {1.0})
+        include_player_velocities {bool} -- [description] (default: {True})
+        include_ball_velocities {bool} -- [description] (default: {True})
+        figax {[type]} -- [description] (default: {None})
+    
+    Returns:
+        figure, axis -- matplolib objects
+    """
     # plots positions (and velocities) of players 
     if figax is None:
         fig,ax = plot_pitch(match)
     else:
         (fig,ax) = figax
+
     team1 = np.zeros((14,4))
     team0 = np.zeros((14,4))
     for i,j in enumerate( frame.team1_jersey_nums_in_frame ):
@@ -124,8 +162,8 @@ def plot_frame(frame,match,alpha=1.0,include_player_velocities=True,include_ball
     for i,j in enumerate( frame.team0_jersey_nums_in_frame ):
         team0[i,0] = frame.team0_players[j].pos_x
         team0[i,1] = frame.team0_players[j].pos_y
-        team0[i,2] = frame.team0_players[j].vx/2. # Divide by 2 for aesthetic purposes only (otherwise quiver is too long)
-        team0[i,3] = frame.team0_players[j].vy/2. # Divide by 2 for aesthetic purposes only (otherwise quiver is too long)
+        team0[i,2] = frame.team0_players[j].vx/2.  # Divide by 2 for aesthetic purposes only (otherwise quiver is too long)
+        team0[i,3] = frame.team0_players[j].vy/2.  # Divide by 2 for aesthetic purposes only (otherwise quiver is too long)
     team0 = team0[:i+1,:]
     pts1, = ax.plot( team1[:,0], team1[:,1], 'ro',linewidth=0,markeredgewidth=0,markersize=10,alpha=alpha)
     pts2, = ax.plot( team0[:,0], team0[:,1], 'bo',linewidth=0,markeredgewidth=0,markersize=10,alpha=alpha)
@@ -144,9 +182,24 @@ def plot_frame(frame,match,alpha=1.0,include_player_velocities=True,include_ball
         ax.annotate(n, (team1[i,0]+txt_offset,team1[i,1]+txt_offset))
     for i, n in enumerate( frame.team0_jersey_nums_in_frame ): 
         ax.annotate(n, (team0[i,0]+txt_offset,team0[i,1]+txt_offset))
+
     return fig,ax
 
+
 def plot_frames(frames,match,pause=0.0,include_player_velocities=True,include_ball_velocities=False, skip=1,alpha=1.0):
+    """ plot frames 
+    
+    Arguments:
+        frames {lst} -- list of frames
+        match {tracab match} -- tracab match
+    
+    Keyword Arguments:
+        pause {float} -- [description] (default: {0.0})
+        include_player_velocities {bool} -- [description] (default: {True})
+        include_ball_velocities {bool} -- [description] (default: {False})
+        skip {int} -- [description] (default: {1})
+        alpha {float} -- [description] (default: {1.0})
+    """
     # sequentially plots 
     fig,ax = plot_pitch(match)
     points_on = False
@@ -195,7 +248,9 @@ def plot_frames(frames,match,pause=0.0,include_player_velocities=True,include_ba
         if not points_on:
             points_on = True
         
-def save_match_clip(frames,match,fpath,fname='clip_test',include_player_velocities=True,hcol='r',acol='b',team1_exclude=[],team0_exclude=[],include_hulls=False,speed_fact=1.0,description=None):
+        
+def save_match_clip(frames,match,fpath,fname='clip_test',include_player_velocities=True,hcol='r',acol='b',
+                    team1_exclude=[],team0_exclude=[],include_hulls=False,speed_fact=1.0,description=None):
     # saves a movie of frames with filename 'fname' in directory 'fpath'
     FFMpegWriter = animation.writers['ffmpeg']
     metadata = dict(title='Tracking Data', artist='Matplotlib', comment='test clip!')
@@ -267,7 +322,7 @@ def save_match_clip(frames,match,fpath,fname='clip_test',include_player_velociti
     plt.close('all')
             
             
-def plot_player_timeseries(frames,match,team,jerseynum):
+def plot_player_timeseries(frames, match, team, jerseynum):
     # extracts positions over frames for a single player identified by jerseynum
     nframes = len(frames)
     px = np.zeros(nframes)
@@ -286,6 +341,7 @@ def plot_player_timeseries(frames,match,team,jerseynum):
                 px[i] = None
                 py[i] = None
                 sp[i] = None
+                
         elif team==0:
             if jerseynum in frame.team0_jersey_nums_in_frame:
                 px[i] = frame.team0_players[jerseynum].pos_x
@@ -295,5 +351,6 @@ def plot_player_timeseries(frames,match,team,jerseynum):
                 px[i] = None
                 py[i] = None
                 sp[i] = None
+
     return timestamp,px,py,sp
     
