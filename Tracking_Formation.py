@@ -285,23 +285,27 @@ def get_superliga_clusters(Amatrix,Smatrix,all_formations,formation_stats,match_
     ctypes =  make_dendogram( Amatrix,formation_stats,t=80,method='ward')
     clusternums = [[1],[2],[3],[4,5],[6,7,8],[9],[10],[11],[12],[13,14],[15,16],[17,18,19],[20],[21],[22],[23],[24],[25],[26],[27,28]]
     nclusters = len(clusternums)   
-    print nclusters
+    print (nclusters)
     clustered_formations = []
     for cluster in clusternums:
-        print cluster
+        print (cluster)
         clustered_formations.append( generate_formation_from_sub_cluster(ctypes, all_formations, cluster, Amatrix, Smatrix, match_tb) )
     assert len(clustered_formations)==20
+    
     return clustered_formations
+
 
 def save_clustered_formations(clustered_formations):
     fname = "/Users/laurieshaw/Documents/Football/Data/TrackingData/Tracab/clustered_formations_WMs.pkl"
     with open(fname, 'wb') as output:
         pickle.dump(clustered_formations, output, pickle.HIGHEST_PROTOCOL)    
         
+
 def load_clustered_formations():
     fname = "/Users/laurieshaw/Documents/Football/Data/TrackingData/Tracab/clustered_formations_WMs.pkl"
     with open(fname, 'rb') as input:
         clustered_formations = pickle.load(input) 
+b
     return clustered_formations    
 
     

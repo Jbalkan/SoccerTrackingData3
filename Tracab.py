@@ -187,7 +187,9 @@ def read_tracab_match_data(league, fpath, fname,
 
     # run some basic checks
     check_frames(frames)
-    if during_match_only:  # remove pre-match, post-match and half-time frames
+    
+    # remove pre-match, post-match and half-time frames
+    if during_match_only:  
         frames = frames[match.period_attributes[1]['iStart']:match.period_attributes[1]['iEnd']+1] + frames[match.period_attributes[2]['iStart']:match.period_attributes[2]['iEnd']+1]
         match.period_attributes[1]['iEnd'] = match.period_attributes[1]['iEnd']-match.period_attributes[1]['iStart']
         match.period_attributes[1]['iStart'] = 0
@@ -305,9 +307,10 @@ def get_players(frames):
 
     # get all jerseys in frames
     for j1 in team1_jerseys:
-        team1_players[j1] = tracab_player(j1,1)
+        team1_players[j1] = tracab_player(j1, 1)
     for j0 in team0_jerseys:
-        team0_players[j0] = tracab_player(j0,0)
+        team0_players[j0] = tracab_player(j0, 0)
+
     for frame in frames:
         for j in team1_jerseys:
             if j in frame.team1_jersey_nums_in_frame:
@@ -332,7 +335,7 @@ def timestamp_frames(frames, match):
     
     Returns:
         lst -- frames
-        traca_match -- match
+        tracab match -- match
     """
     # Frames must be sorted into ascending frameid first
     frame_period = 1/float(match.iFrameRateFps)
@@ -342,7 +345,7 @@ def timestamp_frames(frames, match):
     match.period_attributes[2]['iStart'] = None
     match.period_attributes[1]['iEnd'] = None
     match.period_attributes[2]['iEnd'] = None
-    for i,frame in enumerate(frames):
+    for i, frame in enumerate(frames):
         if frame.frameid < match.period_attributes[1]['iStartFrame']:
             frame.period = 0  # pre match
             frame.timestamp = -1
@@ -443,6 +446,7 @@ def make_posession_plot(posessions):
 #                                                           #
 #############################################################
 
+
 class tracab_match(object):
     """ Tracab Match class
     
@@ -464,7 +468,7 @@ class tracab_match(object):
                 period_attributes[pk][ak] = int(period_attributes[pk][ak])
         self.period_attributes = period_attributes
         
-# frame class
+
 class tracab_frame(object):
     """ Tracab Frame object
     
@@ -482,7 +486,7 @@ class tracab_frame(object):
         self.ball = False
         self.referee = None
         
-    def add_frame_target(self,target_raw):
+    def add_frame_target(self, target_raw):
         # add a player to the frame
         team = int( target_raw[0] )
         sys_target_ID = int( target_raw[1] )
@@ -517,7 +521,8 @@ class tracab_frame(object):
         nrefs = 0 if self.referee is None else 1
         s = 'Frame id: %d, nplayers: %d, nrefs: %d, nballs: %d' % (self.frameid, nplayers, nrefs, self.ball*1)
         return s
-        
+
+
 class tracab_target(object):
     """  defines position of an individual target 'player' in a frame
     
@@ -553,8 +558,8 @@ class tracab_player(object):
         self.frame_targets = []
         self.frame_timestamps = []
         self.frameids = []
-        
-    def add_frame(self,target,frameid,timestamp):
+
+    def add_frame(self, target, frameid, timestamp):
         self.frame_targets.append( target )
         self.frame_timestamps.append( timestamp )
         self.frameids.append( frameid )
@@ -563,7 +568,7 @@ class tracab_player(object):
         # player is not on the pitch (specifically, is not in a frame)
         self.frame_timestamps.append( timestamp )
         self.frameids.append( frameid )
-        self.frame_targets.append( tracab_target(self.teamID, None, self.jersey_num, 0.0, 0.0, 0.0 ) )
+        self.frame_targets.append( tracab_target(self.teamID, None, self.jersey_num, 0.0, 0.0, 0.0 ))
 
 
 class tracab_possesion(object):

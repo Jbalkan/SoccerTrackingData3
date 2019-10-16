@@ -13,7 +13,8 @@ import scipy.stats as stats
 from scipy.signal import butter, lfilter, freqz
 import pickle
 
-def smooth_ball_position(frames,match,_filter='Savitzky-Golay',window=5,polyorder=3):
+
+def smooth_ball_position(frames, match,_filter='Savitzky-Golay', window=5, polyorder=3):
     # For smoothing ball positions. Not used.
     for half in [1,2]:
         istart = match.period_attributes[half]['iStart']
@@ -40,8 +41,8 @@ def smooth_ball_position(frames,match,_filter='Savitzky-Golay',window=5,polyorde
                 frames[istart+i].ball_pos_x_smooth = r[i,0]
                 frames[istart+i].ball_pos_y_smooth = r[i,1]
                 frames[istart+i].ball_pos_z_smooth = r[i,2]
+
     return frames, r, r_raw
-    
 
 
 def estimate_ball_velocities(frames,match,_filter='Savitzky-Golay',window=5,polyorder=3,maxspeed=40):
@@ -96,6 +97,7 @@ def estimate_ball_velocities(frames,match,_filter='Savitzky-Golay',window=5,poly
         xraw.append(dr_raw)
     dr = np.vstack(tuple(x))
     dr_raw = np.vstack(tuple(xraw))
+    
     return frames, dr, dt, dr_raw
 
 def estimate_player_velocities(team1_players, team0_players, match, _filter='Savitzky-Golay', window=7, polyorder=1, maxspeed = 14):
