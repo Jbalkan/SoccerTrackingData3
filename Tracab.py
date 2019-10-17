@@ -209,6 +209,7 @@ def read_tracab_match_data(league, fpath, fname,
     match.team1_exclude = team1_exclude
     match.team0_exclude = team0_exclude
     vel.estimate_player_velocities(team1_players, team0_players, match, window=7, polyorder=1, maxspeed=14)
+    vel.estimate_player_accelerations(team1_players, team0_players, match)
     vel.estimate_ball_velocities(frames, match, window=5, polyorder=3, maxspeed=40)
     vel.estimate_com_frames(frames, match, team1_exclude, team0_exclude)
 
@@ -226,6 +227,7 @@ def set_parity(frames, match):
     else:
         match.period_parity[1] = -1
         match.period_parity[2] = 1
+
     return match
 
 
@@ -532,7 +534,7 @@ class tracab_target(object):
         object {[type]} -- jersey_num
         object {[type]} -- pos_x
         object {[type]} -- pos_y
-        object {[type]} -- speed
+        object {[type]} -- speed, given by the data source
 
     """
     def __init__(self, team, sys_target_ID, jersey_num, pos_x, pos_y, speed):
@@ -542,6 +544,9 @@ class tracab_target(object):
         self.pos_x = pos_x
         self.pos_y = pos_y
         self.speed = speed
+
+    def add_acceleration(self, a):
+        self.acceleration = a
 
 
 class tracab_player(object):

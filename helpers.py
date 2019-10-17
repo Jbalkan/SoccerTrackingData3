@@ -16,8 +16,10 @@ import pandas as pd
 #                                                           #
 #############################################################
 
+def get_all_values(player, metric):
+    return np.array([eval('t.' + metric) for t in player.frame_targets])
 
-def apply_to_all(team1_players, team0_players, func, verbose=True, metric_name='metric'):
+def apply_to_all(team1_players, team0_players, func, verbose=True, metric_name='metric', **kwargs):
     """ apply to all players the func metric
 
     Arguments:
@@ -35,7 +37,7 @@ def apply_to_all(team1_players, team0_players, func, verbose=True, metric_name='
     data = []
     for (team_id, (num, player)) in all_players:
         # apply metric by split
-        col_names, vals = apply_by_split(player, func, metric_name)
+        col_names, vals = apply_by_split(player, func, metric_name, **kwargs)
         data.append(vals)
 
     all_data = pd.DataFrame(np.array([col_names.tolist()] + np.array(data).tolist()).T).set_index(0).T.set_index(['team_id', 'jersey_num'])
@@ -43,7 +45,7 @@ def apply_to_all(team1_players, team0_players, func, verbose=True, metric_name='
     return all_data
 
 
-def apply_by_split(player, func, metric_name='metric'):
+def apply_by_split(player, func, metric_name='metric',  **kwargs):
     """ apply metric of func by splits and add a summary by summing over all splits
 
     Arguments:
@@ -75,19 +77,19 @@ def apply_by_split(player, func, metric_name='metric'):
     for i in range(n - 1):
         # end of a split
         if (ts_lst[i] - ts_start) >= split_size:
-            data[i_split].append(func(player, i_start, i_end=i))
+            data[i_split].append(func(player, i_start, i_end=i, **kwargs))
             i_start, ts_start = i, ts_lst[i]
             i_split += 1
 
         # end of a period
         if ts_lst[i + 1] < ts_lst[i]:
             # additional time
-            data[i_split].append(func(player, i_start, i_end=i))
+            data[i_split].append(func(player, i_start, i_end=i, **kwargs))
             i_start, ts_start = i, 0
             i_split += 1
 
     # second additional time
-    data[i_split].append(func(player, i_start, i_end=i))
+    data[i_split].append(func(player, i_start, i_end=i, **kwargs))
     i_start, ts_start = i, ts_lst[i]
 
     # sum up for summary
@@ -113,11 +115,11 @@ def get_total_distance(player, i_start=0, i_end=None):
     """ get total distance ran by a player
 
     Arguments:
-        player {tracab player} -- [description]
+        player {tracab player} -- player to analyze
 
     Keyword Arguments:
-        i_start {int} -- [description] (default: {0})
-        i_end {[type]} -- [description] (default: {None})
+        i_start {int} -- starting frame id (default: {0})
+        i_end {[type]} -- ending frame id (default: {None})
 
     Returns:
         float -- total distance
@@ -145,3 +147,31 @@ def get_total_time(player):
     total_time += (ts_lst[-1] - start)
 
     return total_time
+
+
+def top_speed(player, i_start, i_end, source='filter', unit='ms'):
+    if source == 'filter':
+        top_speed = max([player.frame_targets[i].speed_filter for i in range(i_start, i_end)])
+    elif source == 'data':
+        top_speed = max([player.frame_targets[i].speed for i in range(i_start, i_end)])
+    else:
+        raise Exception
+    
+    if unit == 'ms':
+        return round(top_speed, 2)
+    elif unit == 'kmh':
+        return round(top_speed * 3.6, 2)
+
+
+def mean_speed(player, i_start, i_end, source='filter', unit='ms'):
+    if source == 'filter':
+        top_speed = max([player.frame_targets[i].speed_filter for i in range(i_start, i_end)])
+    elif 'source' == 'data':
+        top_speed = np.mean([player.frame_targets[i].speed for i in range(i_start, i_end)])
+    else:
+        raise Exception
+
+    if unit == 'ms':
+        return round(top_speed, 2)
+    elif unit == 'kmh':
+        return round(top_speed * 3.6, 2)

@@ -100,17 +100,30 @@ def estimate_ball_velocities(frames,match,_filter='Savitzky-Golay',window=5,poly
     
     return frames, dr, dt, dr_raw
 
-def estimate_player_velocities(team1_players, team0_players, match, _filter='Savitzky-Golay', window=7, polyorder=1, maxspeed = 14):
+def estimate_player_velocities(team1_players, team0_players, match, _filter='Savitzky-Golay', window=7, polyorder=1, maxspeed=14):
+    """ estimate all player velocities in vy an vy
+    
+    Arguments:
+        team1_players {[type]} -- [description]
+        team0_players {[type]} -- [description]
+        match {tracab match} -- [description]
+    
+    Keyword Arguments:
+        _filter {str} -- [description] (default: {'Savitzky-Golay'})
+        window {int} -- [description] (default: {7})
+        polyorder {int} -- [description] (default: {1})
+        maxspeed {int} -- [description] (default: {14})
+    """
     # Frame of interest is in the center of the window
-    # estimated velocities for players in team1
-    # TODO: add accelerations too
-    for p in team1_players.keys(): # cycle through players individually
-        nframes = len( team1_players[p].frame_targets )
-        dr = np.zeros((nframes,2),dtype=float)
-        dt = np.zeros(nframes,dtype=float)
-        for i,frame in enumerate( team1_players[p].frame_targets ):
-            dr[i,:] = np.array( [frame.pos_x,frame.pos_y] )/100. # to m
-            dt[i] = team1_players[p].frame_timestamps[i]*60 # to seconds # FIX THIS! Add time stamps to tracab_target?
+    # cycle through players individually
+    all_players = [x for x in team0_players.items()] + [x for x in team1_players.items()]
+    for (num, player) in all_players:
+        nframes = len(player.frame_targets)
+        dr = np.zeros((nframes, 2), dtype=float)
+        dt = np.zeros(nframes, dtype=float)
+        for i,frame in enumerate(player.frame_targets):
+            dr[i,:] = np.array([frame.pos_x, frame.pos_y])/100. # to m
+            dt[i] = player.frame_timestamps[i] * 60 # to seconds # FIX THIS! Add time stamps to tracab_target?
             frame.vx = np.nan
             frame.vy = np.nan
             frame.speed_filter = np.nan
@@ -118,41 +131,42 @@ def estimate_player_velocities(team1_players, team0_players, match, _filter='Sav
         dt = np.diff(dt)
         for i in [0,1]:
             dr[:,i] = dr[:,i]/dt
+            
         # remove anamolously high ball velocities
-        dr[np.abs(dr)>maxspeed]=0.0 # perhaps should be nan, but this would affect surrounding frames
+        dr[np.abs(dr) > maxspeed]= 0.0 # perhaps should be nan, but this would affect surrounding frames
+        
         # Apply filters
-        dr[:,0] = signal.savgol_filter(dr[:,0],window_length=window,polyorder=polyorder)
-        dr[:,1] = signal.savgol_filter(dr[:,1],window_length=window,polyorder=polyorder)
+        dr[:,0] = signal.savgol_filter(dr[:,0], window_length=window, polyorder=polyorder)
+        dr[:,1] = signal.savgol_filter(dr[:,1], window_length=window, polyorder=polyorder)
         # Put velocity information back into frames
-        for i,frame in enumerate( team1_players[p].frame_targets[1:] ):
+        for i,frame in enumerate(player.frame_targets[1:]):
             frame.vx = dr[i,0]
             frame.vy = dr[i,1]
-            frame.speed_filter = np.sqrt( frame.vx**2 + frame.vy**2 )
-    # estimated velocities for players in team0
-    for p in team0_players.keys():
-        nframes = len( team0_players[p].frame_targets )
-        dr = np.zeros((nframes,2),dtype=float)
-        dt = np.zeros(nframes,dtype=float)
-        for i,frame in enumerate( team0_players[p].frame_targets ):
-            dr[i,:] = np.array( [frame.pos_x,frame.pos_y] )/100. # to m
-            dt[i] = team0_players[p].frame_timestamps[i]*60 # to seconds # FIX THIS! Add time stamps to tracab_target?
-            frame.vx = np.nan
-            frame.vy = np.nan
-            frame.speed_filter = np.nan
-        dr = np.diff(dr,axis=0)
-        dt = np.diff(dt)
-        for i in [0,1]:
-            dr[:,i] = dr[:,i]/dt
-        dr[np.abs(dr)>maxspeed]=0.0 # perhaps should be nan, but this would affect surrounding frames
-        dr[:,0] = signal.savgol_filter(dr[:,0],window_length=window,polyorder=polyorder)
-        dr[:,1] = signal.savgol_filter(dr[:,1],window_length=window,polyorder=polyorder)
-        for i,frame in enumerate( team0_players[p].frame_targets[1:] ):
-            frame.vx = dr[i,0]
-            frame.vy = dr[i,1]
-            frame.speed_filter = np.sqrt( frame.vx**2 + frame.vy**2 )
+            frame.speed_filter = np.sqrt(frame.vx**2 + frame.vy**2)
+
+
+def estimate_player_accelerations(team1_players, team0_players, match, _filter='Savitzky-Golay', window=7, polyorder=1, maxspeed=14):
+    """ estimate all player accelerations
+    
+    Arguments:
+        team1_players {[type]} -- [description]
+        team0_players {[type]} -- [description]
+        match {tracab match} -- [description]
+    
+    Keyword Arguments:
+        _filter {str} -- [description] (default: {'Savitzky-Golay'})
+        window {int} -- [description] (default: {7})
+        polyorder {int} -- [description] (default: {1})
+        maxspeed {int} -- [description] (default: {14})
+    """
+    all_players = [x for x in team0_players.items()] + [x for x in team1_players.items()]
+    for (num, player) in all_players:
+        nframes = len(player.frame_targets)
+        for i,frame in enumerate(player.frame_targets):
+            pass
+  
             
-            
-def estimate_com_frames(frames_tb,match_tb,team1exclude,team0exclude):
+def estimate_com_frames(frames_tb, match_tb, team1exclude, team0exclude):
     for frame in frames_tb:
         # home team
         players = frame.team1_players
@@ -204,7 +218,6 @@ def estimate_com_frames(frames_tb,match_tb,team1exclude,team0exclude):
             frame.team0_y = np.nan
             frame.team0_vx = np.nan
             frame.team0_vy = np.nan
+
     return frames_tb
-    
-    
     
