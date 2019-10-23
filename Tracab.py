@@ -199,7 +199,7 @@ def read_tracab_match_data(league, fpath, fname,
     # identify which way each team is shooting
     set_parity(frames, match)
 
-    # get player objects and calculate ball and player & team com velocity
+    # get player objects
     if verbose:
         print("Measuring velocities")
     team1_players, team0_players = get_players(frames)
@@ -208,8 +208,12 @@ def read_tracab_match_data(league, fpath, fname,
 
     match.team1_exclude = team1_exclude
     match.team0_exclude = team0_exclude
+
+    # player metrics
     vel.estimate_player_velocities(team1_players, team0_players, match, window=7, polyorder=1, maxspeed=14)
     vel.estimate_player_accelerations(team1_players, team0_players, match)
+
+    #  ball and team com velocity  
     vel.estimate_ball_velocities(frames, match, window=5, polyorder=3, maxspeed=40)
     vel.estimate_com_frames(frames, match, team1_exclude, team0_exclude)
 
@@ -265,6 +269,18 @@ def get_goalkeeper_numbers(frames, verbose=True):
 
 
 def find_GK_substitution(frames,team,first_gk_id):
+    """ 
+    find goal keeper id at each frame 
+    throw an exception 
+    
+    Arguments:
+        frames {[type]} -- [description]
+        team {[type]} -- [description]
+        first_gk_id {[type]} -- [description]
+    
+    Returns:
+        [type] -- [description]
+    """
     gk_id = first_gk_id
     new_gk = []
     plast = []
@@ -544,9 +560,6 @@ class tracab_target(object):
         self.pos_x = pos_x
         self.pos_y = pos_y
         self.speed = speed
-
-    def add_acceleration(self, a):
-        self.acceleration = a
 
 
 class tracab_player(object):
