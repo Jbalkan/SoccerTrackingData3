@@ -117,9 +117,8 @@ def read_tracab_match_xml(fmetadata):
     return match
 
 
-def read_tracab_match_data(league, fpath, fname,
-                           team1_exclude=None, team0_exclude=None,
-                           during_match_only=True, verbose=False):
+def read_tracab_match_data(league, fpath, fname, team1_exclude=None, team0_exclude=None,
+                           during_match_only=True, verbose=False, player_acceleration=True):
     """ Main function to read match data
         Create a list of frame objects and a tracab_match
 
@@ -187,9 +186,9 @@ def read_tracab_match_data(league, fpath, fname,
 
     # run some basic checks
     check_frames(frames)
-    
+
     # remove pre-match, post-match and half-time frames
-    if during_match_only:  
+    if during_match_only:
         frames = frames[match.period_attributes[1]['iStart']:match.period_attributes[1]['iEnd']+1] + frames[match.period_attributes[2]['iStart']:match.period_attributes[2]['iEnd']+1]
         match.period_attributes[1]['iEnd'] = match.period_attributes[1]['iEnd']-match.period_attributes[1]['iStart']
         match.period_attributes[1]['iStart'] = 0
@@ -211,9 +210,10 @@ def read_tracab_match_data(league, fpath, fname,
 
     # player metrics
     vel.estimate_player_velocities(team1_players, team0_players, match, window=7, polyorder=1, maxspeed=14)
-    vel.estimate_player_accelerations(team1_players, team0_players, match)
+    if player_acceleration:
+        vel.estimate_player_accelerations(team1_players, team0_players, match)
 
-    #  ball and team com velocity  
+    # ball and team com velocity  
     vel.estimate_ball_velocities(frames, match, window=5, polyorder=3, maxspeed=40)
     vel.estimate_com_frames(frames, match, team1_exclude, team0_exclude)
 
@@ -560,6 +560,11 @@ class tracab_target(object):
         self.pos_x = pos_x
         self.pos_y = pos_y
         self.speed = speed
+
+        # future computations
+        self.ax = np.nan
+        self.ay = np.nan
+        self.a_magnitude = np.nan
 
 
 class tracab_player(object):

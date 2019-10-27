@@ -12,6 +12,7 @@ import scipy.signal as signal
 import scipy.stats as stats
 from scipy.signal import butter, lfilter, freqz
 import pickle
+import helpers
 
 
 def smooth_ball_position(frames, match,_filter='Savitzky-Golay', window=5, polyorder=3):
@@ -117,7 +118,7 @@ def estimate_player_velocities(team1_players, team0_players, match, _filter='Sav
         maxspeed {int} -- [description] (default: {14})
     """
     # Frame of interest is in the center of the window
-    all_players = [x for x in team0_players.items()] + [x for x in team1_players.items()]
+    all_players = list(team0_players.items()) + list(team1_players.items())
     for (num, player) in all_players:
         nframes = len(player.frame_targets)
         dr = np.zeros((nframes, 2), dtype=float)
@@ -149,7 +150,8 @@ def estimate_player_velocities(team1_players, team0_players, match, _filter='Sav
             frame.speed_filter = round(np.sqrt(frame.vx**2 + frame.vy**2), precision)
 
 
-def estimate_player_accelerations(team1_players, team0_players, match, window=7, max_a=None, precision=3):
+
+def estimate_player_accelerations(team1_players, team0_players, match, window=5, max_a=None, precision=3):
     """ estimate all player accelerations on a window of <window> frames
         Thus the first <window> frames do not have an acceleration
     
@@ -161,30 +163,32 @@ def estimate_player_accelerations(team1_players, team0_players, match, window=7,
     Keyword Arguments:
         window {int} --  (default: {7})
     """
-    all_players = [x for x in team0_players.items()] + [x for x in team1_players.items()]
+    all_players = list(team0_players.items()) + list(team1_players.items())
     for (num, player) in all_players:
         nframes = len(player.frame_targets)
         dv = np.zeros((nframes, 2), dtype=float)
         dt = np.zeros(nframes, dtype=float)
 
         for i,frame in enumerate(player.frame_targets):
-            dv[i,:] = np.array([frame.pos_x, frame.pos_y])/100. # to m
+            dv[i,:] = np.array([frame.vx, frame.vy])
             dt[i] = player.frame_timestamps[i] * 60 # to seconds # FIX THIS! TODO fix what?
             frame.ax, frame.ay = np.nan, np.nan
-        dv = np.diff(dv,axis=0)
-        dt = np.diff(dt)
+
+        # get differences
+        # dv = np.diff(dv, axis=0)
+        # dt = np.diff(dt)
+        dv = helpers.slice_np_diff(dv, n=window)
+        dt = helpers.slice_np_diff(dt, n=window)
 
         # compute acceleration
         for i in [0,1]:
             dv[:,i] = dv[:,i]/dt
             
         # save acceleration information
-        for i,frame in enumerate(player.frame_targets[1:]):
+        for i,frame in enumerate(player.frame_targets[window:]):
             frame.ax = round(dv[i,0], precision)
-            frame.ay =  round(dv[i,1], precision)
+            frame.ay = round(dv[i,1], precision)
             frame.a_magnitude = round(np.sqrt(frame.ax**2 + frame.ay**2), precision)
-
-        print(vars(player))
 
     print('Warning, must get rid of accelerations that are too high > need to find a threshold')
 

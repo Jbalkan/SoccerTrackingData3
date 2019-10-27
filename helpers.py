@@ -16,8 +16,35 @@ import pandas as pd
 #                                                           #
 #############################################################
 
+
+def get_mean_every_k(arr, k=10):
+    """ Get array of all the means for each interval of size k
+        Returns an array of length k times smaller
+
+    Keyword Arguments:
+        k {int} -- [description] (default: {10})
+
+    """
+    if len(arr) % k != 0:
+        arr = arr[:-(len(arr) % k)]
+
+    return np.mean(arr.reshape(-1, k), axis=1)
+
+
+def slice_np_diff(lst, n=1):
+    """ function like np.diff but gives the difference between elements that
+        are spaced by <n> indices
+
+    Keyword Arguments:
+        n {int} -- space, default is 1 and functions like np.diff (default: {1})
+
+    """
+    return (lst[n:] - lst[:-n])
+
+
 def get_all_values(player, metric):
     return np.array([eval('t.' + metric) for t in player.frame_targets])
+
 
 def apply_to_all(team1_players, team0_players, func, verbose=True, metric_name='metric', **kwargs):
     """ apply to all players the func metric
