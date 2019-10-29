@@ -210,8 +210,8 @@ def read_tracab_match_data(league, fpath, fname, team1_exclude=None, team0_exclu
 
     # player metrics
     vel.estimate_player_velocities(team1_players, team0_players, match, window=7, polyorder=1, maxspeed=14)
-    if player_acceleration:
-        vel.estimate_player_accelerations(team1_players, team0_players, match)
+    # if player_acceleration:
+    #     vel.estimate_player_accelerations(team1_players, team0_players, match)
 
     # ball and team com velocity  
     vel.estimate_ball_velocities(frames, match, window=5, polyorder=3, maxspeed=40)
@@ -561,10 +561,13 @@ class tracab_target(object):
         self.pos_y = pos_y
         self.speed = speed
 
-        # future computations
-        self.ax = np.nan
-        self.ay = np.nan
-        self.a_magnitude = np.nan
+        # # future computations
+        # self.vx = np.nan
+        # self.vy = np.nan
+        # self.vfilter = np.nan
+        # self.ax = np.nan
+        # self.ay = np.nan
+        # self.a_magnitude = np.nan
 
 
 class tracab_player(object):

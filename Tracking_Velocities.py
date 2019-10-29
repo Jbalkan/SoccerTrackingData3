@@ -9,10 +9,7 @@ Module for measuring ball and player velocity (and acceleration, eventually) fro
 
 import numpy as np
 import scipy.signal as signal
-import scipy.stats as stats
-from scipy.signal import butter, lfilter, freqz
-import pickle
-import helpers
+# from scipy.signal import butter, lfilter, freqz
 
 
 def smooth_ball_position(frames, match,_filter='Savitzky-Golay', window=5, polyorder=3):
@@ -98,19 +95,20 @@ def estimate_ball_velocities(frames,match,_filter='Savitzky-Golay',window=5,poly
         xraw.append(dr_raw)
     dr = np.vstack(tuple(x))
     dr_raw = np.vstack(tuple(xraw))
-    
+
     return frames, dr, dt, dr_raw
 
 
-def estimate_player_velocities(team1_players, team0_players, match, _filter='Savitzky-Golay', 
-                                window=7, polyorder=1, maxspeed=14, precision=3):
+def estimate_player_velocities(team1_players, team0_players, match,
+                               _filter='Savitzky-Golay', window=7, polyorder=1,
+                               maxspeed=14, precision=3):
     """ estimate all player velocities in vy an vy
-    
+
     Arguments:
         team1_players {dict} -- [description]
         team0_players {dict} -- [description]
         match {tracab match} -- [description]
-    
+
     Keyword Arguments:
         _filter {str} -- [description] (default: {'Savitzky-Golay'})
         window {int} -- [description] (default: {7})
@@ -123,74 +121,81 @@ def estimate_player_velocities(team1_players, team0_players, match, _filter='Sav
         nframes = len(player.frame_targets)
         dr = np.zeros((nframes, 2), dtype=float)
         dt = np.zeros(nframes, dtype=float)
-
-        for i,frame in enumerate(player.frame_targets):
-            dr[i,:] = np.array([frame.pos_x, frame.pos_y])/100. # to m
-            dt[i] = player.frame_timestamps[i] * 60 # to seconds # FIX THIS! 
+        for i, frame in enumerate(player.frame_targets):
+            dr[i, :] = np.array([frame.pos_x, frame.pos_y])/100. # to m
+            dt[i] = player.frame_timestamps[i] * 60  # to seconds # FIX THIS! 
             # Add time stamps to tracab_target
             player.frame_targets[i].timestamp = player.frame_timestamps[i] * 60
             frame.vx, frame.vy = np.nan, np.nan
             frame.speed_filter = np.nan
+
         dr = np.diff(dr,axis=0)
         dt = np.diff(dt)
         for i in [0,1]:
             dr[:,i] = dr[:,i]/dt
-            
+
         # remove anamolously high ball velocities
-        dr[np.abs(dr) > maxspeed]= 0.0 # perhaps should be nan, but this would affect surrounding frames
-        
+        dr[np.abs(dr) > maxspeed] = 0.0  # perhaps should be nan, but this would affect surrounding frames
+
         # Apply filters
-        dr[:,0] = signal.savgol_filter(dr[:,0], window_length=window, polyorder=polyorder)
-        dr[:,1] = signal.savgol_filter(dr[:,1], window_length=window, polyorder=polyorder)
-        
+        dr[:, 0] = signal.savgol_filter(dr[:, 0], window_length=window, polyorder=polyorder)
+        dr[:, 1] = signal.savgol_filter(dr[:, 1], window_length=window, polyorder=polyorder)
+
         # Put velocity information back into frames
-        for i,frame in enumerate(player.frame_targets[1:]):
-            frame.vx = round(dr[i,0], precision)
-            frame.vy = round(dr[i,1], precision)
-            frame.speed_filter = round(np.sqrt(frame.vx**2 + frame.vy**2), precision)
+        for i, frame in enumerate(player.frame_targets[1:]):
+            frame.vx = round(dr[i, 0], precision)
+            frame.vy = round(dr[i, 1], precision)
+            frame.v_filter = round(np.sqrt(frame.vx**2 + frame.vy**2), precision)
+
+        # add acceleration
+        c = signal.savgol_coeffs(window_length=window, polyorder=polyorder, 
+                                 deriv=1, pos=0, use='dot')  # pos 0 bc specifies evaluation position within the window. 
+        for i in range(len(player.frame_targets[1:]) - window):
+            frame.ax = round(np.dot(c, dr[i:i+window, 0]), precision)
+            frame.ax = round(np.dot(c, dr[i:i+window, 1]), precision)
+            frame.a_filter = round(np.sqrt(frame.ax**2 + frame.ay**2), precision)
 
 
-
-def estimate_player_accelerations(team1_players, team0_players, match, window=5, max_a=None, precision=3):
-    """ estimate all player accelerations on a window of <window> frames
-        Thus the first <window> frames do not have an acceleration
+# def estimate_player_accelerations(team1_players, team0_players, match, window=5, max_a=None, precision=3):
+#     """ estimate all player accelerations on a window of <window> frames
+#         Thus the first <window> frames do not have an acceleration
     
-    Arguments:
-        team1_players {dict} -- 
-        team0_players {dict} -- 
-        match {tracab match} -- 
+#     Arguments:
+#         team1_players {dict} -- 
+#         team0_players {dict} -- 
+#         match {tracab match} -- 
     
-    Keyword Arguments:
-        window {int} --  (default: {7})
-    """
-    all_players = list(team0_players.items()) + list(team1_players.items())
-    for (num, player) in all_players:
-        nframes = len(player.frame_targets)
-        dv = np.zeros((nframes, 2), dtype=float)
-        dt = np.zeros(nframes, dtype=float)
+#     Keyword Arguments:
+#         window {int} --  (default: {7})
+#     """
+#     all_players = list(team0_players.items()) + list(team1_players.items())
+#     for (num, player) in all_players:
+#         nframes = len(player.frame_targets)
+#         dv = np.zeros((nframes, 2), dtype=float)
+#         dt = np.zeros(nframes, dtype=float)
 
-        for i,frame in enumerate(player.frame_targets):
-            dv[i,:] = np.array([frame.vx, frame.vy])
-            dt[i] = player.frame_timestamps[i] * 60 # to seconds # FIX THIS! TODO fix what?
-            frame.ax, frame.ay = np.nan, np.nan
+#         for i,frame in enumerate(player.frame_targets):
+#             dv[i,:] = np.array([frame.vx, frame.vy])
+#             dt[i] = player.frame_timestamps[i] * 60 # to seconds # FIX THIS! TODO fix what?
+#             frame.ax, frame.ay = np.nan, np.nan
 
-        # get differences
-        # dv = np.diff(dv, axis=0)
-        # dt = np.diff(dt)
-        dv = helpers.slice_np_diff(dv, n=window)
-        dt = helpers.slice_np_diff(dt, n=window)
+#         # get differences
+#         # dv = np.diff(dv, axis=0)
+#         # dt = np.diff(dt)
+#         dv = helpers.slice_np_diff(dv, n=window)
+#         dt = helpers.slice_np_diff(dt, n=window)
 
-        # compute acceleration
-        for i in [0,1]:
-            dv[:,i] = dv[:,i]/dt
+#         # compute acceleration
+#         for i in [0,1]:
+#             dv[:,i] = dv[:,i]/dt
             
-        # save acceleration information
-        for i,frame in enumerate(player.frame_targets[window:]):
-            frame.ax = round(dv[i,0], precision)
-            frame.ay = round(dv[i,1], precision)
-            frame.a_magnitude = round(np.sqrt(frame.ax**2 + frame.ay**2), precision)
+#         # save acceleration information
+#         for i,frame in enumerate(player.frame_targets[window:]):
+#             frame.ax = round(dv[i,0], precision)
+#             frame.ay = round(dv[i,1], precision)
+#             frame.a_magnitude = round(np.sqrt(frame.ax**2 + frame.ay**2), precision)
 
-    print('Warning, must get rid of accelerations that are too high > need to find a threshold')
+#     print('Warning, must get rid of accelerations that are too high > need to find a threshold')
 
             
 def estimate_com_frames(frames_tb, match_tb, team1exclude, team0exclude):
