@@ -8,6 +8,7 @@ Module for measuring ball and player velocity (and acceleration, eventually) fro
 """
 
 import numpy as np
+import scipy
 import scipy.signal as signal
 # from scipy.signal import butter, lfilter, freqz
 
@@ -71,8 +72,10 @@ def estimate_ball_velocities(frames,match,_filter='Savitzky-Golay',window=5,poly
         for i in [0,1,2]: # there must be a better way of doing this way
             dr[:,i] = dr[:,i]/dt
         dr_raw = dr.copy()
+        
         # remove anamolously high ball velocities
         dr[np.abs(dr)>maxspeed]=0.0 # perhaps should be nan, but this would affect surrounding frames
+        
         # Apply filters
         dr[:,0] = signal.savgol_filter(dr[:,0],window_length=window,polyorder=polyorder)
         dr[:,1] = signal.savgol_filter(dr[:,1],window_length=window,polyorder=polyorder)
@@ -82,6 +85,7 @@ def estimate_ball_velocities(frames,match,_filter='Savitzky-Golay',window=5,poly
         frames[istart].ball_vz = 0.
         frames[istart].ball_speed_filter2 = 0
         frames[istart].ball_speed_filter3 = 0
+        
         # add ball velocity to frame data
         for i in mask[1:]:
             if frames[istart+i].ball:
@@ -105,105 +109,65 @@ def estimate_player_velocities(team1_players, team0_players, match,
     """ estimate all player velocities in vy an vy
 
     Arguments:
-        team1_players {dict} -- [description]
-        team0_players {dict} -- [description]
-        match {tracab match} -- [description]
+        team1_players {dict} --
+        team0_players {dict} --
+        match {tracab match} --
 
     Keyword Arguments:
-        _filter {str} -- [description] (default: {'Savitzky-Golay'})
-        window {int} -- [description] (default: {7})
-        polyorder {int} -- [description] (default: {1})
-        maxspeed {int} -- [description] (default: {14})
+        _filter {str} -- type of filter (default: {'Savitzky-Golay'})
+        window {int} -- window length for filter (default: {7})
+        polyorder {int} -- order for filter, 1 is linear (default: {1})
+        maxspeed {int} -- maximum speed in m/s (default: {14})
     """
     # Frame of interest is in the center of the window
     all_players = list(team0_players.items()) + list(team1_players.items())
     for (num, player) in all_players:
+        # initialize
         nframes = len(player.frame_targets)
         dr = np.zeros((nframes, 2), dtype=float)
         dt = np.zeros(nframes, dtype=float)
+
         for i, frame in enumerate(player.frame_targets):
             dr[i, :] = np.array([frame.pos_x, frame.pos_y])/100. # to m
             dt[i] = player.frame_timestamps[i] * 60  # to seconds # FIX THIS! 
+
             # Add time stamps to tracab_target
             player.frame_targets[i].timestamp = player.frame_timestamps[i] * 60
-            frame.vx, frame.vy = np.nan, np.nan
-            frame.speed_filter = np.nan
+            frame.vx, frame.vy, frame.v_filter = np.nan, np.nan, np.nan
 
-        dr = np.diff(dr,axis=0)
+        dr = np.diff(dr, axis=0)
         dt = np.diff(dt)
-        for i in [0,1]:
-            dr[:,i] = dr[:,i]/dt
+        for i in [0, 1]:
+            dr[:, i] = dr[:, i]/dt
 
-        # remove anamolously high ball velocities
+        # remove anamolously high  velocities
         dr[np.abs(dr) > maxspeed] = 0.0  # perhaps should be nan, but this would affect surrounding frames
 
-        # Apply filters
+        # Apply filters to get velocities
         dr[:, 0] = signal.savgol_filter(dr[:, 0], window_length=window, polyorder=polyorder)
         dr[:, 1] = signal.savgol_filter(dr[:, 1], window_length=window, polyorder=polyorder)
 
-        # Put velocity information back into frames
+        # get accelerations
+        a = np.zeros((nframes - 1, 2), dtype=float)
+        dt_mode = scipy.stats.mode(dt).mode
+        a[:, 0] = signal.savgol_filter(dr[:, 0], window_length=window, polyorder=polyorder, deriv=1, delta=dt_mode)
+        a[:, 1] = signal.savgol_filter(dr[:, 1], window_length=window, polyorder=polyorder, deriv=1, delta=dt_mode)
+
+        # Put information back into frames
         for i, frame in enumerate(player.frame_targets[1:]):
             frame.vx = round(dr[i, 0], precision)
             frame.vy = round(dr[i, 1], precision)
             frame.v_filter = round(np.sqrt(frame.vx**2 + frame.vy**2), precision)
-
-        # add acceleration
-        c = signal.savgol_coeffs(window_length=window, polyorder=polyorder, 
-                                 deriv=1, pos=0, use='dot')  # pos 0 bc specifies evaluation position within the window. 
-        for i in range(len(player.frame_targets[1:]) - window):
-            frame.ax = round(np.dot(c, dr[i:i+window, 0]), precision)
-            frame.ax = round(np.dot(c, dr[i:i+window, 1]), precision)
+            frame.ax = round(a[i, 0], precision)
+            frame.ay = round(a[i, 1], precision)
             frame.a_filter = round(np.sqrt(frame.ax**2 + frame.ay**2), precision)
 
 
-# def estimate_player_accelerations(team1_players, team0_players, match, window=5, max_a=None, precision=3):
-#     """ estimate all player accelerations on a window of <window> frames
-#         Thus the first <window> frames do not have an acceleration
-    
-#     Arguments:
-#         team1_players {dict} -- 
-#         team0_players {dict} -- 
-#         match {tracab match} -- 
-    
-#     Keyword Arguments:
-#         window {int} --  (default: {7})
-#     """
-#     all_players = list(team0_players.items()) + list(team1_players.items())
-#     for (num, player) in all_players:
-#         nframes = len(player.frame_targets)
-#         dv = np.zeros((nframes, 2), dtype=float)
-#         dt = np.zeros(nframes, dtype=float)
-
-#         for i,frame in enumerate(player.frame_targets):
-#             dv[i,:] = np.array([frame.vx, frame.vy])
-#             dt[i] = player.frame_timestamps[i] * 60 # to seconds # FIX THIS! TODO fix what?
-#             frame.ax, frame.ay = np.nan, np.nan
-
-#         # get differences
-#         # dv = np.diff(dv, axis=0)
-#         # dt = np.diff(dt)
-#         dv = helpers.slice_np_diff(dv, n=window)
-#         dt = helpers.slice_np_diff(dt, n=window)
-
-#         # compute acceleration
-#         for i in [0,1]:
-#             dv[:,i] = dv[:,i]/dt
-            
-#         # save acceleration information
-#         for i,frame in enumerate(player.frame_targets[window:]):
-#             frame.ax = round(dv[i,0], precision)
-#             frame.ay = round(dv[i,1], precision)
-#             frame.a_magnitude = round(np.sqrt(frame.ax**2 + frame.ay**2), precision)
-
-#     print('Warning, must get rid of accelerations that are too high > need to find a threshold')
-
-            
 def estimate_com_frames(frames_tb, match_tb, team1exclude, team0exclude):
     """ center of mass velocity for each team
 
     could help to compare to th
 
-    
     Arguments:
         frames_tb {[type]} -- [description]
         match_tb {[type]} -- [description]

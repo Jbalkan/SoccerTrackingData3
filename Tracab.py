@@ -118,7 +118,7 @@ def read_tracab_match_xml(fmetadata):
 
 
 def read_tracab_match_data(league, fpath, fname, team1_exclude=None, team0_exclude=None,
-                           during_match_only=True, verbose=False, player_acceleration=True):
+                           during_match_only=True, verbose=False):
     """ Main function to read match data
         Create a list of frame objects and a tracab_match
 
@@ -209,9 +209,8 @@ def read_tracab_match_data(league, fpath, fname, team1_exclude=None, team0_exclu
     match.team0_exclude = team0_exclude
 
     # player metrics
-    vel.estimate_player_velocities(team1_players, team0_players, match, window=7, polyorder=1, maxspeed=14)
-    # if player_acceleration:
-    #     vel.estimate_player_accelerations(team1_players, team0_players, match)
+    vel.estimate_player_velocities(team1_players, team0_players, match, 
+                                   window=7, polyorder=1, maxspeed=14)
 
     # ball and team com velocity  
     vel.estimate_ball_velocities(frames, match, window=5, polyorder=3, maxspeed=40)
