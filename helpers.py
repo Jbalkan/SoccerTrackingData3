@@ -42,8 +42,10 @@ def slice_np_diff(lst, n=1):
     return (lst[n:] - lst[:-n])
 
 
-def get_all_values(player, metric):
-    return np.array([eval('t.' + metric) for t in player.frame_targets])
+def get_all_values(player, metric, start=0, skip_last=None):
+    skip_last = len(player.frame_targets) if not skip_last else - skip_last
+    series = np.array([eval('t.' + metric) for t in player.frame_targets[start:skip_last]])
+    return series
 
 
 def apply_to_all(team1_players, team0_players, func, verbose=True, metric_name='metric', **kwargs):
@@ -125,80 +127,3 @@ def apply_by_split(player, func, metric_name='metric',  **kwargs):
     return np.array([['team_id', player.teamID], ['jersey_num', player.jersey_num]] + data).T
 
 
-#############################################################
-#                                                           #
-#                       Metrics                             #
-#                                                           #
-#############################################################
-
-
-def distance(start, end):
-    xs, ys = start
-    xe, ye = end
-    return np.sqrt((xe-xs) ** 2 + (ye-ys) ** 2)
-
-
-def get_total_distance(player, i_start=0, i_end=None):
-    """ get total distance ran by a player
-
-    Arguments:
-        player {tracab player} -- player to analyze
-
-    Keyword Arguments:
-        i_start {int} -- starting frame id (default: {0})
-        i_end {[type]} -- ending frame id (default: {None})
-
-    Returns:
-        float -- total distance
-    """
-    total_distance = 0
-    i_end = i_end if i_end else len(player.frame_timestamps)
-    for i in range(i_start, i_end - 1):
-        start = (player.frame_targets[i].pos_x, player.frame_targets[i].pos_y)
-        end = (player.frame_targets[i + 1].pos_x, player.frame_targets[i + 1].pos_y)
-        total_distance += distance(start, end)
-
-    return round(total_distance/100, 2)
-
-
-def get_total_time(player):
-    total_time = 0
-    ts_lst = player.frame_timestamps
-    start = ts_lst[0]
-    for i in range(len(ts_lst) - 1):
-        # find end of a period
-        if ts_lst[i + 1] < ts_lst[i]:
-            total_time += ts_lst[i] - start
-            start = ts_lst[i + 1]
-
-    total_time += (ts_lst[-1] - start)
-
-    return total_time
-
-
-def top_speed(player, i_start, i_end, source='filter', unit='ms'):
-    if source == 'filter':
-        top_speed = max([player.frame_targets[i].speed_filter for i in range(i_start, i_end)])
-    elif source == 'data':
-        top_speed = max([player.frame_targets[i].speed for i in range(i_start, i_end)])
-    else:
-        raise Exception
-    
-    if unit == 'ms':
-        return round(top_speed, 2)
-    elif unit == 'kmh':
-        return round(top_speed * 3.6, 2)
-
-
-def mean_speed(player, i_start, i_end, source='filter', unit='ms'):
-    if source == 'filter':
-        top_speed = max([player.frame_targets[i].speed_filter for i in range(i_start, i_end)])
-    elif 'source' == 'data':
-        top_speed = np.mean([player.frame_targets[i].speed for i in range(i_start, i_end)])
-    else:
-        raise Exception
-
-    if unit == 'ms':
-        return round(top_speed, 2)
-    elif unit == 'kmh':
-        return round(top_speed * 3.6, 2)
