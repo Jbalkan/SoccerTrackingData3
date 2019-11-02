@@ -7,7 +7,6 @@ written by Jeff Balkanski
 """
 
 import numpy as np
-
 import helpers
 
 
@@ -18,33 +17,39 @@ import helpers
 ###################################
 
 
-def distance(start, end):
-    xs, ys = start
-    xe, ye = end
-    return np.sqrt((xe-xs) ** 2 + (ye-ys) ** 2)
+def get_distance_btw_frames(player):
+    positions = np.array([(t.pos_x, t.pos_y) for t in player.frame_targets])
+    distances = np.sqrt(np.power(np.diff(positions[:, 0]), 2) + np.power(np.diff(positions[:, 1]), 2))
+
+    return np.round_(distances/100, 2)
 
 
-def get_total_distance(player, i_start=0, i_end=None):
-    """ get total distance ran by a player
+def get_cumulative_distance(player):
 
-    Arguments:
-        player {tracab player} -- player to analyze
+    return np.round_(np.cumsum(get_distance_btw_frames(player)), 2)
 
-    Keyword Arguments:
-        i_start {int} -- starting frame id (default: {0})
-        i_end {[type]} -- ending frame id (default: {None})
 
-    Returns:
-        float -- total distance
-    """
-    total_distance = 0
-    i_end = i_end if i_end else len(player.frame_timestamps)
-    for i in range(i_start, i_end - 1):
-        start = (player.frame_targets[i].pos_x, player.frame_targets[i].pos_y)
-        end = (player.frame_targets[i + 1].pos_x, player.frame_targets[i + 1].pos_y)
-        total_distance += distance(start, end)
+# def get_total_distance(player, i_start=0, i_end=None):
+#     """ get total distance ran by a player
 
-    return round(total_distance/100, 2)
+#     Arguments:
+#         player {tracab player} -- player to analyze
+
+#     Keyword Arguments:
+#         i_start {int} -- starting frame id (default: {0})
+#         i_end {[type]} -- ending frame id (default: {None})
+
+#     Returns:
+#         float -- total distance
+#     """
+#     total_distance = 0
+#     i_end = i_end if i_end else len(player.frame_timestamps)
+#     for i in range(i_start, i_end - 1):
+#         start = (player.frame_targets[i].pos_x, player.frame_targets[i].pos_y)
+#         end = (player.frame_targets[i + 1].pos_x, player.frame_targets[i + 1].pos_y)
+#         total_distance += distance(start, end)
+
+#     return round(total_distance/100, 2)
 
 
 def get_total_time(player):
@@ -90,7 +95,11 @@ def mean_speed(player, i_start, i_end, source='filter', unit='ms'):
         return round(top_speed * 3.6, 2)
 
 
-
+###################################
+#                                 #
+#      Energy expenditure         #
+#                                 #
+###################################
 
 
 def estimate_player_VeBDA(team1_players, team0_players):
@@ -153,3 +162,11 @@ def estimate_metabolic_power(team1_players, team0_players):
         # store
         for i, frame in enumerate(player.frame_targets[1:]):
             frame.metabolic = metabolic_power[i]
+
+
+Ar = 0.45
+ro = 1.225  # resistance of air
+m = 65
+C_d = 0.85
+Beta = Ar * ro / 2
+energy_constants = {'Ar': Ar, 'ro': ro, 'm': m, 'C_d': C_d, 'Beta': Beta}
