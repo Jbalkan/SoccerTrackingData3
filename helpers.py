@@ -6,6 +6,8 @@ Metrics.py
 
 """
 
+import os
+import pickle
 import numpy as np
 import pandas as pd
 
@@ -15,6 +17,70 @@ import pandas as pd
 #                       Abstractions                        #
 #                                                           #
 #############################################################
+
+
+def add_metric_to_player(team1_players, team0_players, func, metric_name, skip_start=1, skip_end=None):
+    all_players = [(x[0], x[1], 1) for x in list(team1_players.items())] + [(x[0], x[1], 0) for x in list(team0_players.items())]
+    for (num, player, team) in all_players:
+        metric = func(player)
+        skip_end = skip_end if not skip_end else - skip_end
+
+        # store info
+        for i, frame in enumerate(player.frame_targets[skip_start:skip_end]):
+            setattr(frame, metric_name, metric[i])
+
+        print('Done with player {} of team {}'.format(num, team))
+
+
+def get_all_values(player, metric, start=0, skip_last=None):
+    skip_last = len(player.frame_targets) if not skip_last else - skip_last
+    series = np.array([eval('t.' + metric) for t in player.frame_targets[start:skip_last]])
+    return series
+
+
+def picle_tracab_objects(frames, match, team1_players, team0_players, loc='./saved'):
+    """ Save tracab obj
+
+    Arguments:
+        frames {[type]} -- [description]
+        match {[type]} -- [description]
+        team1_players {[type]} -- [description]
+        team0_players {[type]} -- [description]
+
+    Keyword Arguments:
+        loc {str} -- [description] (default: {'./saved'})
+    """
+    for obj, filename in zip([frames, match, team1_players, team0_players], ['frames', 'match', 'team1', 'team0']):
+        with open(os.path.join('./saved', filename), 'wb') as outfile:
+            pickle.dump(obj, outfile)
+
+
+def read_pickled_tracab_objects(loc='./saved'):
+    """ Read saved pickled trsacab objects
+
+    Keyword Arguments:
+        loc {str} -- path of pickled files (default: {'./saved'})
+
+    Returns:
+        lst -- list of tracab objects 
+    """
+    with open(os.path.join('./saved', 'team1'), 'rb') as infile:
+        team1_players = pickle.load(infile)
+        print('Done reading pickle objet team1')
+
+    with open(os.path.join('./saved', 'team0'), 'rb') as infile:
+        team0_players = pickle.load(infile)
+        print('Done reading pickle objet team0')
+
+    with open(os.path.join('./saved', 'match'), 'rb') as infile:
+        match_tb = pickle.load(infile)
+        print('Done reading pickle objet match')
+
+    with open(os.path.join('./saved', 'frames_tb'), 'rb') as infile:
+        frames_tb = pickle.load(infile)
+        print('Done reading pickle objet frames')
+
+    return frames_tb, match_tb, team1_players, team0_players
 
 
 def get_mean_every_k(arr, k=10):
@@ -42,10 +108,6 @@ def slice_np_diff(lst, n=1):
     return (lst[n:] - lst[:-n])
 
 
-def get_all_values(player, metric, start=0, skip_last=None):
-    skip_last = len(player.frame_targets) if not skip_last else - skip_last
-    series = np.array([eval('t.' + metric) for t in player.frame_targets[start:skip_last]])
-    return series
 
 
 def apply_to_all(team1_players, team0_players, func, verbose=True, metric_name='metric', **kwargs):

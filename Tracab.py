@@ -37,14 +37,14 @@ def get_filename_dict_EPL():
 
 def get_tracabdata_paths(fpath, fname, league='EPL'):
     """ Get paths of tracabdata, modified by Jeff to work with first example
-    
+
     Arguments:
         fpath {str} -- filepath of data
         fname {str} -- file name
-    
+
     Keyword Arguments:
         league {str} -- league name (default: {'EPL'})
-    
+
     Returns:
         [type] -- fmetadata
         [type] -- fdata
@@ -77,13 +77,13 @@ def read_tracab_match(fmetadata):
     # get meta data
     f = open(fmetadata, "r")
     metadata = f.read()
-    soup = BeautifulSoup(metadata, 'xml') # deal with xml markup (BS might be overkill here)
+    soup = BeautifulSoup(metadata, 'xml')  # deal with xml markup (BS might be overkill here)
     match_attributes = soup.match.attrs
     period_attributes = {}
 
     # navigate through the file to extract the info that we need
     for p in soup.find_all('period'):
-        if p.attrs['iEndFrame']>p.attrs['iStartFrame']:
+        if p.attrs['iEndFrame'] > p.attrs['iStartFrame']:
             period_attributes[int(p.attrs['iId'])] = p.attrs
 
     match = tracab_match(match_attributes, period_attributes)
@@ -109,7 +109,7 @@ def read_tracab_match_xml(fmetadata):
 
     # navigate through the file to extract the info that we need
     for t in temp:
-        if int(t.attrib['iEndFrame']) > int( t.attrib['iStartFrame']):
+        if int(t.attrib['iEndFrame']) > int(t.attrib['iStartFrame']):
             period_attributes[int(t.attrib['iId'])] = t.attrib
 
     match = tracab_match(match_attributes, period_attributes)

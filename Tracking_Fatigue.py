@@ -29,29 +29,6 @@ def get_cumulative_distance(player):
     return np.round_(np.cumsum(get_distance_btw_frames(player)), 2)
 
 
-# def get_total_distance(player, i_start=0, i_end=None):
-#     """ get total distance ran by a player
-
-#     Arguments:
-#         player {tracab player} -- player to analyze
-
-#     Keyword Arguments:
-#         i_start {int} -- starting frame id (default: {0})
-#         i_end {[type]} -- ending frame id (default: {None})
-
-#     Returns:
-#         float -- total distance
-#     """
-#     total_distance = 0
-#     i_end = i_end if i_end else len(player.frame_timestamps)
-#     for i in range(i_start, i_end - 1):
-#         start = (player.frame_targets[i].pos_x, player.frame_targets[i].pos_y)
-#         end = (player.frame_targets[i + 1].pos_x, player.frame_targets[i + 1].pos_y)
-#         total_distance += distance(start, end)
-
-#     return round(total_distance/100, 2)
-
-
 def get_total_time(player):
     total_time = 0
     ts_lst = player.frame_timestamps
@@ -170,3 +147,35 @@ m = 65
 C_d = 0.85
 Beta = Ar * ro / 2
 energy_constants = {'Ar': Ar, 'ro': ro, 'm': m, 'C_d': C_d, 'Beta': Beta}
+
+
+def get_energy_expenditure(player, c=energy_constants, wind_resistance=True):
+    """ Get the energy expenditure
+    
+    Arguments:
+        player {[type]} -- [description]
+    
+    Keyword Arguments:
+        c {[type]} -- [description] (default: {energy_constants})
+        wind_resistance {bool} -- [description] (default: {True})
+    
+    Returns:
+        [type] -- [description]
+    """
+    # no acceleration on 1st frame > compute everything for only after 1st frame
+    v = helpers.get_all_values(player, 'v_filter', start=1)
+    a = helpers.get_all_values(player, 'a_filter', start=1)
+    n_frames = len(v)
+    W = np.zeros(n_frames)
+    dt = np.diff([player.frame_timestamps[i] * 60 for i in range(len(player.frame_targets))])
+
+    # get rid of mid time
+    midtime_index = np.where(dt < -1)
+    v, a, dt = [np.delete(arr, midtime_index) for arr in [v, a, dt]]
+
+    # energy expenditure
+    F = m * a
+    wind = (Beta * v**2)/2 if wind_resistance else 0
+    E_expend = (F + wind) * np.multiply(v, dt)
+    
+    return E_expend
