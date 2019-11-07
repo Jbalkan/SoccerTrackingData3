@@ -306,10 +306,10 @@ def find_GK_substitution(frames,team,first_gk_id):
 
 def get_players(frames):
     """ Get all players appearing in frames argument
-    
+
     Arguments:
         frames {lst[frames]} -- list of frames to identify players
-    
+
     Returns:
         (dict, dict) -- dictionaries of player objects
     """

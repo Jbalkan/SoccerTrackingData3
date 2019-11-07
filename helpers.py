@@ -38,19 +38,14 @@ def get_all_values(player, metric, start=0, skip_last=None):
     return series
 
 
-def picle_tracab_objects(frames, match, team1_players, team0_players, loc='./saved'):
-    """ Save tracab obj
-
-    Arguments:
-        frames {[type]} -- [description]
-        match {[type]} -- [description]
-        team1_players {[type]} -- [description]
-        team0_players {[type]} -- [description]
+def pickle_tracab_objects(frames, match, team1_players, team0_players, loc='./saved'):
+    """ Save tracab objects locally
 
     Keyword Arguments:
         loc {str} -- [description] (default: {'./saved'})
     """
-    for obj, filename in zip([frames, match, team1_players, team0_players], ['frames', 'match', 'team1', 'team0']):
+    for obj, filename in zip([frames, match, team1_players, team0_players],
+                             ['frames', 'match', 'team1', 'team0']):
         with open(os.path.join('./saved', filename), 'wb') as outfile:
             pickle.dump(obj, outfile)
 
@@ -62,7 +57,7 @@ def read_pickled_tracab_objects(loc='./saved'):
         loc {str} -- path of pickled files (default: {'./saved'})
 
     Returns:
-        lst -- list of tracab objects 
+        lst -- list of tracab objects
     """
     with open(os.path.join('./saved', 'team1'), 'rb') as infile:
         team1_players = pickle.load(infile)

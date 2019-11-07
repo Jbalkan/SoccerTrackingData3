@@ -151,16 +151,14 @@ energy_constants = {'Ar': Ar, 'ro': ro, 'm': m, 'C_d': C_d, 'Beta': Beta}
 
 def get_energy_expenditure(player, c=energy_constants, wind_resistance=True):
     """ Get the energy expenditure
-    
+        E = ((m * a) + wind) * v * dt
+
     Arguments:
         player {[type]} -- [description]
-    
+
     Keyword Arguments:
         c {[type]} -- [description] (default: {energy_constants})
         wind_resistance {bool} -- [description] (default: {True})
-    
-    Returns:
-        [type] -- [description]
     """
     # no acceleration on 1st frame > compute everything for only after 1st frame
     v = helpers.get_all_values(player, 'v_filter', start=1)
@@ -177,5 +175,5 @@ def get_energy_expenditure(player, c=energy_constants, wind_resistance=True):
     F = m * a
     wind = (Beta * v**2)/2 if wind_resistance else 0
     E_expend = (F + wind) * np.multiply(v, dt)
-    
+
     return E_expend
