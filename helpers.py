@@ -20,7 +20,7 @@ import pandas as pd
 
 
 def add_metric_to_player(team1_players, team0_players, func, metric_name, skip_start=1, skip_end=None):
-    all_players = [(x[0], x[1], 1) for x in list(team1_players.items())] + [(x[0], x[1], 0) for x in list(team0_players.items())]
+    all_players = [(x[0], x[1], 1) for x in team1_players.items()] + [(x[0], x[1], 0) for x in team0_players.items()]
     for (num, player, team) in all_players:
         metric = func(player)
         skip_end = skip_end if not skip_end else - skip_end

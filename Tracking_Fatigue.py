@@ -173,7 +173,7 @@ def get_energy_expenditure(player, c=energy_constants, wind_resistance=True):
 
     # energy expenditure
     F = m * a
-    wind = (Beta * v**2)/2 if wind_resistance else 0
+    wind = (Beta * v**2) if wind_resistance else 0
     E_expend = (F + wind) * np.multiply(v, dt)
 
-    return E_expend
+    return np.round(E_expend, 2)
