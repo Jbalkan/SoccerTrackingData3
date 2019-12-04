@@ -177,3 +177,16 @@ def get_energy_expenditure(player, c=energy_constants, wind_resistance=True):
     E_expend = (F + wind) * np.multiply(v, dt)
 
     return np.round(E_expend, 2)
+
+
+# get all energy expenditure time series for one game
+def get_time_series(players_full_game):
+    metric_values = []
+    for row in players_full_game.to_dict(orient='records'):
+        player = row['obj']
+        val_array = get_energy_expenditure(player)
+        metric_values.append([row['match_id'], row['player_id'], val_array])
+
+    EX_all = np.array(metric_values)
+    
+    return EX_all

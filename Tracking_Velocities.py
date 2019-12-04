@@ -105,7 +105,7 @@ def estimate_ball_velocities(frames,match,_filter='Savitzky-Golay',window=5,poly
 
 def estimate_player_velocities(team1_players, team0_players, match,
                                _filter='Savitzky-Golay', window=7, polyorder=1,
-                               maxspeed=14, precision=3):
+                               maxspeed=14, precision=3, include_acceleration=False):
     """ estimate all player velocities in vy an vy
 
     Arguments:
@@ -148,19 +148,21 @@ def estimate_player_velocities(team1_players, team0_players, match,
         dr[:, 1] = signal.savgol_filter(dr[:, 1], window_length=window, polyorder=polyorder)
 
         # get accelerations
-        a = np.zeros((nframes - 1, 2), dtype=float)
-        dt_mode = scipy.stats.mode(dt).mode
-        a[:, 0] = signal.savgol_filter(dr[:, 0], window_length=window, polyorder=polyorder, deriv=1, delta=dt_mode)
-        a[:, 1] = signal.savgol_filter(dr[:, 1], window_length=window, polyorder=polyorder, deriv=1, delta=dt_mode)
+        if include_acceleration:
+            a = np.zeros((nframes - 1, 2), dtype=float)
+            dt_mode = scipy.stats.mode(dt).mode
+            a[:, 0] = signal.savgol_filter(dr[:, 0], window_length=window, polyorder=polyorder, deriv=1, delta=dt_mode)
+            a[:, 1] = signal.savgol_filter(dr[:, 1], window_length=window, polyorder=polyorder, deriv=1, delta=dt_mode)
 
         # Put information back into frames
         for i, frame in enumerate(player.frame_targets[1:]):
             frame.vx = round(dr[i, 0], precision)
             frame.vy = round(dr[i, 1], precision)
             frame.v_filter = round(np.sqrt(frame.vx**2 + frame.vy**2), precision)
-            frame.ax = round(a[i, 0], precision)
-            frame.ay = round(a[i, 1], precision)
-            frame.a_filter = round(np.sqrt(frame.ax**2 + frame.ay**2), precision)
+            if include_acceleration:
+                frame.ax = round(a[i, 0], precision)
+                frame.ay = round(a[i, 1], precision)
+                frame.a_filter = round(np.sqrt(frame.ax**2 + frame.ay**2), precision)
 
 
 def estimate_com_frames(frames_tb, match_tb, team1exclude, team0exclude):

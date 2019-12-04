@@ -1,6 +1,8 @@
 """
 
-Metrics.py
+Abstractions and heleprs for player positions
+
+helpers.py
 
 @author: Jeff Balkanski
 
@@ -12,11 +14,55 @@ import numpy as np
 import pandas as pd
 
 
-#############################################################
-#                                                           #
-#                       Abstractions                        #
-#                                                           #
-#############################################################
+def map_playerids_positions(team1_players, team0_players, match_id,
+                            includ_obj=True,
+                            loc_mapping='../playerid_jerseynum_map.csv'):
+    # read positions
+    try:
+        mapping = pd.read_csv(loc_mapping)
+    except:
+        print('Must have a positions file')
+
+    player_id_to_name = mapping[mapping['Match ID'] == int(match_id)]
+    all_players_pre = [(x[0], x[1], 1) for x in team1_players.items()] + [(x[0], x[1], 0) for x in team0_players.items()]
+    all_players = []
+    for num, player, team in all_players_pre:
+        team_str = 'Home' if team else 'Away'
+        player_id = None
+        players_team = player_id_to_name[player_id_to_name['Team'] == team_str]
+        player_id, starting_pos = players_team[players_team['Jersey Num'] == num][['Playerid', 'Starting Position']].values[0]
+        all_players.append([player_id, team, num, starting_pos, player])
+
+    # get rid of non starters
+    all_players = pd.DataFrame(all_players, columns=['player_id', 'Team', 'jersey_num', 'start_pos', 'obj'])
+    all_players = all_players[all_players['start_pos'] != 'Sub']
+    all_players['match_id'] = match_id
+
+    # add main positions
+    all_players = add_main_position(all_players)
+
+    if not includ_obj:
+        return all_players.drop('obj', axis=1)
+
+    return all_players
+
+
+def add_main_position(players_df):
+    main_positions = { 'F': ['FW'],
+                    'M': ['CM', 'LM', 'RM', 'DM', 'CDM', 'LCM', 
+                        'RCM', 'AM', 'ACM', 'LAM', 'CAM', 'RAM'],
+                    'D': ['CD', 'RWB', 'LWB', 'RFB', 'LFB'],
+                    'GK': ['GK'],
+                    'Sub': ['Sub']}
+
+    main_positions_inv = {}
+    for k, positions in main_positions.items():
+        for pos in positions:
+            main_positions_inv[pos] = k
+
+    players_df['start_pos_super'] = players_df['start_pos'].apply(lambda x: main_positions_inv[x])
+
+    return players_df
 
 
 def add_metric_to_player(team1_players, team0_players, func, metric_name, skip_start=1, skip_end=None):

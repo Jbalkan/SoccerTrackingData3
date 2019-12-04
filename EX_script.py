@@ -1,0 +1,68 @@
+import os
+import datetime
+import copy
+import pickle
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+from collections import defaultdict
+
+import Tracab as tracab
+import Tracking_Visuals as vis
+import Tracking_Velocities as vel
+import Tracking_Fatigue as fatigue
+import helpers
+
+# config
+current_dir = os.path.dirname(os.getcwd())
+dir_path = os.path.join(current_dir, 'Aalborg_Jeff')
+LEAGUE = 'DSL'
+
+# all games data
+data_dict = {}
+all_Aalborg_games = [x for x, _, _ in os.walk(dir_path) if x.count('_TracDAT')]
+
+def get_time_series(players_full_game):
+    metric_values = []
+    for row in players_full_game.to_dict(orient='records'):
+        player = row['obj']
+        val_array = fatigue.get_energy_expenditure(player)
+        metric_values.append([row['match_id'], row['player_id'], val_array])
+
+    EX_all = np.array(metric_values)
+    
+    return EX_all
+
+## LONG RUN
+
+# for each game
+for path in all_Aalborg_games:
+    # store path
+    match_id, _ = path.replace(os.path.dirname(path) + '/', '').split('_')
+    data_dict[match_id] = {'data_path': path}
+    
+    # read 
+    fpath, fname = path, str(match_id)
+    frames_tb, match_tb, team1_players, team0_players = tracab.read_tracab_match_data(LEAGUE, fpath, fname, verbose=True)
+    
+    # players info
+    players_info = helpers.map_playerids_positions(team1_players, team0_players, 
+                                match_id,loc_mapping='../playerid_jerseynum_map.csv')
+    
+    # get stats
+    time_series_mat = get_time_series(players_info)
+    
+    # store 
+    data_dict[match_id]['player_info'] = players_info.drop('obj', axis=1)
+    data_dict[match_id]['energy_x'] = time_series_mat
+    
+    # free memory
+    del team1_players, team0_players, match_tb, frames_tb
+    
+# save
+with open(os.path.join('./saved', 'all_time_series.pkl'), 'wb') as outfile:
+    pickle.dump(data_dict, outfile)
+    
+    
+print('successfully computed time series for all games')
