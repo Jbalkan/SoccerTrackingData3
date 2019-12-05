@@ -22,7 +22,7 @@ cluster_dir_path = '/n/home03/lshaw/Tracking/Tracab/SuperLiga/'
 LEAGUE = 'DSL'
 PLAYER_ID_to_JERSEY_NUM_LOC = '../playerid_jerseynum_map.csv'
 OUTFILE_NAME = 'all_time_series_1_test.pkl'
-n_games = 3
+n_games = 2
 
 # helpers
 def get_time_series(players_full_game):
@@ -40,8 +40,10 @@ def get_time_series(players_full_game):
 data_dict = {}
 all_Aalborg_games = [x for x, _, _ in os.walk(dir_path) if x.count('_TracDAT')]
 all_cluster_games = [x for x, _, _ in os.walk(cluster_dir_path) if x.split('/')[-1].isnumeric()]
+all_cluster_games.sort(reverse=True)
 all_game_ids = list(map(int, [path.split('/')[-1] for path in all_cluster_games]))
 game_ids_w_player_mapping = pd.read_csv(PLAYER_ID_to_JERSEY_NUM_LOC)['Match ID'].unique()
+print('Sucessfully read data paths and player data')
 
 # LONG RUN: for each game, get time series of energy expenditure
 games = all_cluster_games[:n_games]
