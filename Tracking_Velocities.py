@@ -105,7 +105,7 @@ def estimate_ball_velocities(frames,match,_filter='Savitzky-Golay',window=5,poly
 
 def estimate_player_velocities(team1_players, team0_players, match,
                                _filter='Savitzky-Golay', window=7, polyorder=1,
-                               maxspeed=14, precision=3, include_acceleration=False):
+                               maxspeed=14, precision=3, include_acceleration=True):
     """ estimate all player velocities in vy an vy
 
     Arguments:

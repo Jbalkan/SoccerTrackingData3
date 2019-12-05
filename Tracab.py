@@ -210,7 +210,7 @@ def read_tracab_match_data(league, fpath, fname, team1_exclude=None, team0_exclu
 
     # player metrics
     vel.estimate_player_velocities(team1_players, team0_players, match,
-                                   window=7, polyorder=1, maxspeed=14, include_acceleration=False)
+                                   window=7, polyorder=1, maxspeed=14)
 
     # ball and team com velocity  
     vel.estimate_ball_velocities(frames, match, window=5, polyorder=3, maxspeed=40)
