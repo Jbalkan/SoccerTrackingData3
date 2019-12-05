@@ -22,7 +22,6 @@ cluster_dir_path = '/n/home03/lshaw/Tracking/Tracab/SuperLiga/'
 LEAGUE = 'DSL'
 PLAYER_ID_to_JERSEY_NUM_LOC = '../playerid_jerseynum_map.csv'
 OUTFILE_NAME = 'all_time_series_1_test.pkl'
-n_games = 2
 
 # helpers
 def get_time_series(players_full_game):
@@ -46,7 +45,7 @@ game_ids_w_player_mapping = pd.read_csv(PLAYER_ID_to_JERSEY_NUM_LOC)['Match ID']
 print('Sucessfully read data paths and player data')
 
 # LONG RUN: for each game, get time series of energy expenditure
-games = all_cluster_games[:n_games]
+games = all_cluster_games
 for path in games:
     # match_id, _ = path.replace(os.path.dirname(path) + '/', '').split('_') # local Aalborg
     match_id = path.split('/')[-1] # cluster
