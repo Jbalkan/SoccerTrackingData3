@@ -37,7 +37,6 @@ def get_time_series(players_full_game):
 # all games data
 all_Aalborg_games = [x for x, _, _ in os.walk(dir_path) if x.count('_TracDAT')]
 all_cluster_games = [x for x, _, _ in os.walk(cluster_dir_path) if x.split('/')[-1].isnumeric()]
-all_cluster_games.sort(reverse=True)
 all_game_ids = list(map(int, [path.split('/')[-1] for path in all_cluster_games]))
 
 # player data
