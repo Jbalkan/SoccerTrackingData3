@@ -52,8 +52,8 @@ for path in games:
     match_id = path.split('/')[-1] # cluster
 
     # skip games which are not in player id mapping with player info
-    if match_id not in game_ids_w_player_mapping:
-        print('skipped match 3 {}'.format(match_id))
+    if int(match_id) not in game_ids_w_player_mapping:
+        print('skipped match {}'.format(match_id))
         continue
     
     # store path
