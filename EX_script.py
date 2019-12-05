@@ -51,7 +51,7 @@ for path in games:
 
     # skip games which are not in player id mapping with player info
     if match_id not in game_ids_w_player_mapping:
-        print('skipped match 3 {}'.format(match_id)
+        print('skipped match 3 {}'.format(match_id))
         continue
     
     # store path
