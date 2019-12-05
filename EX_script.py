@@ -22,7 +22,7 @@ cluster_dir_path = '/n/home03/lshaw/Tracking/Tracab/SuperLiga/'
 LEAGUE = 'DSL'
 PLAYER_ID_to_JERSEY_NUM_LOC = '../playerid_jerseynum_map.csv'
 OUTFILE_NAME = 'all_time_series_1_test.pkl'
-n_games = 1
+n_games = 3
 
 # helpers
 def get_time_series(players_full_game):
@@ -40,13 +40,21 @@ def get_time_series(players_full_game):
 data_dict = {}
 all_Aalborg_games = [x for x, _, _ in os.walk(dir_path) if x.count('_TracDAT')]
 all_cluster_games = [x for x, _, _ in os.walk(cluster_dir_path) if x.split('/')[-1].isnumeric()]
+all_game_ids = list(map(int, [path.split('/')[-1] for path in all_cluster_games]))
+game_ids_w_player_mapping = pd.read_csv(PLAYER_ID_to_JERSEY_NUM_LOC)['Match ID'].unique()
 
 # LONG RUN: for each game, get time series of energy expenditure
 games = all_cluster_games[:n_games]
 for path in games:
-    # store path
-#     match_id, _ = path.replace(os.path.dirname(path) + '/', '').split('_') # local Aalborg
+    # match_id, _ = path.replace(os.path.dirname(path) + '/', '').split('_') # local Aalborg
     match_id = path.split('/')[-1] # cluster
+
+    # skip games which are not in player id mapping with player info
+    if match_id not in game_ids_w_player_mapping:
+        print('skipped match 3 {}'.format(match_id)
+        continue
+    
+    # store path
     data_dict[match_id] = {'data_path': path}
     
     # read 
@@ -56,7 +64,7 @@ for path in games:
     
     # players info
     players_info = helpers.map_playerids_positions(team1_players, team0_players, 
-                                match_id,loc_mapping=PLAYER_ID_to_JERSEY_NUM_LOC)
+                                                    match_id, loc_mapping=PLAYER_ID_to_JERSEY_NUM_LOC)
     
     # get stats
     time_series_mat = get_time_series(players_info)
