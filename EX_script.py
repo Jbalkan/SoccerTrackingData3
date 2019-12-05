@@ -45,7 +45,7 @@ game_ids_w_player_mapping = pd.read_csv(PLAYER_ID_to_JERSEY_NUM_LOC)['Match ID']
 print('Sucessfully read data paths and player data')
 
 # LONG RUN: for each game, get time series of energy expenditure
-games = all_cluster_games[:2]
+games = all_cluster_games
 for path in games:
     # match_id, _ = path.replace(os.path.dirname(path) + '/', '').split('_') # local Aalborg
     match_id = path.split('/')[-1] # cluster
