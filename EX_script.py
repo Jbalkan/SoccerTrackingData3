@@ -21,7 +21,7 @@ dir_path = os.path.join(current_dir, 'Aalborg_Jeff')
 cluster_dir_path = '/n/home03/lshaw/Tracking/Tracab/SuperLiga/'
 LEAGUE = 'DSL'
 PLAYER_ID_to_JERSEY_NUM_LOC = '../playerid_jerseynum_map.csv'
-OUTFILE_NAME = 'all_time_series_1_test.pkl'
+OUTFILE_NAME = 'all_time_series_last_run.pkl'
 
 # helpers
 def get_time_series(players_full_game):
@@ -46,9 +46,12 @@ print('Sucessfully read data paths and player data')
 
 # LONG RUN: for each game, get time series of energy expenditure
 games = all_cluster_games
+for x in games:
+    print(x)
 for path in games:
     # match_id, _ = path.replace(os.path.dirname(path) + '/', '').split('_') # local Aalborg
     match_id = path.split('/')[-1] # cluster
+    print('Starting energy expenditure calculcation for game {} at location {}'.format(match_id, path))
 
     # skip games which are not in player id mapping with player info
     if int(match_id) not in game_ids_w_player_mapping:

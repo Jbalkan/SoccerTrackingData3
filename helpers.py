@@ -51,7 +51,9 @@ def add_main_position(players_df):
     main_positions = { 'F': ['FW'],
                     'M': ['CM', 'LM', 'RM', 'DM', 'CDM', 'LCM', 
                         'RCM', 'AM', 'ACM', 'LAM', 'CAM', 'RAM'],
-                    'D': ['CD', 'RWB', 'LWB', 'RFB', 'LFB'],
+#                     'D': ['CD', 'RWB', 'LWB', 'RFB', 'LFB'],
+                    'FB': ['RFB', 'LFB'],
+                    'CB': ['CD', 'RWB', 'LWB'],
                     'GK': ['GK'],
                     'Sub': ['Sub']}
 
