@@ -56,7 +56,6 @@ for path in games:
     ball_series = pd.DataFrame([[x.ball_status, x.ball_team] for x in frames_tb], 
                            columns=['ball_status', 'ball_team'])
     
-    
     # save
     OUTFILE_NAME = 'ball_in_play_{}.csv'.format(match_id)
     ball_series.to_csv(os.path.join('../saved', OUTFILE_NAME))
