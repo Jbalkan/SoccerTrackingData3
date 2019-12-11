@@ -559,7 +559,7 @@ class tracab_target(object):
         self.pos_x = pos_x
         self.pos_y = pos_y
         self.speed = speed
-
+ 
         # # future computations
         # self.vx = np.nan
         # self.vy = np.nan

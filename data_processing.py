@@ -49,3 +49,12 @@ def update_pkl():
         # re write
         with open(os.path.join(game_dicts[game_id]), 'wb') as infile:
             pickle.dump(game_data, infile)
+            
+            
+# match player names for player data
+# adjust to give last name = first name if not first name
+last_name_nulls_idx = danish_player_data[danish_player_data['last_name'].isnull()].index
+last_nulls = danish_player_data.loc[last_name_nulls_idx]
+danish_player_data.loc[last_name_nulls_idx, 'last_name'] = danish_player_data.loc[
+    last_name_nulls_idx, 'first_name'
+]
